@@ -54,12 +54,12 @@ public class CalorieService {
 
             // **Set up headers**
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + aiApiUrl);
+            headers.set("Authorization", "Bearer " + apiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // **Construct request body**
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "meta-llama/llama-3.2-11b-vision-instruct:free");
+            requestBody.put("model", "google/gemini-2.0-flash-001");
 
             List<Map<String, Object>> messages = new ArrayList<>();
             Map<String, Object> messageContent = new HashMap<>();
@@ -72,6 +72,11 @@ public class CalorieService {
             messageContent.put("content", contentList);
             messages.add(messageContent);
             requestBody.put("messages", messages);
+
+//            System.out.println(requestBody);
+
+            logger.debug("Response Body :{}", requestBody);
+
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
             ResponseEntity<String> response = restTemplate.exchange(aiApiUrl, HttpMethod.POST, request, String.class);

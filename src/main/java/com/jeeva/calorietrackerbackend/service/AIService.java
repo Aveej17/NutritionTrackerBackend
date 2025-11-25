@@ -1,5 +1,6 @@
 package com.jeeva.calorietrackerbackend.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -10,8 +11,10 @@ import java.util.*;
 @Service
 public class AIService {
 
-    private static final String API_URL = "https://openrouter.ai/api/v1/chat/completions";
-    private static final String API_KEY = "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";
+    @Value("${ai.api.url}")
+    private String API_URL;
+    @Value("${ai.api.key}")
+    private String API_KEY;
 
     public String analyzeImage(String imageUrl) {
         RestTemplate restTemplate = new RestTemplate();
@@ -25,7 +28,7 @@ public class AIService {
 
         // Construct request body
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "meta-llama/llama-3.2-11b-vision-instruct:free");
+        requestBody.put("model", "google/gemini-2.0-flash-001");
 
         // Construct messages list
         List<Map<String, Object>> messages = new ArrayList<>();
