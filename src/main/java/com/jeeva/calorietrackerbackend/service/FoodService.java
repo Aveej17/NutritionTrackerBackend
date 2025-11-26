@@ -79,7 +79,7 @@ public class FoodService {
         food.setImageUrl(url);
         food.setMealType(MealType.BREAKFAST);  // Need to set dynamically
 
-// Numeric values must be converted properly
+        // Numeric values must be converted properly
         food.setCalories(String.valueOf(item.get("calories")));
 
         food.setProtein(String.valueOf(item.get("protein")));
