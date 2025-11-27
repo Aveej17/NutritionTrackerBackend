@@ -26,18 +26,19 @@ public class FoodController {
     )
     public ResponseEntity<String> uploadImage(
             @RequestParam("image") MultipartFile imageFile,
-            @RequestParam("email") String userMail) {
+            @RequestParam("notes") String notes,
+            @RequestParam("mealType") String mealType){
 
-        log.debug("Received upload-image request from email: {}", userMail);
+        log.debug("Received upload-image request ");
 
         try {
-            Food food = foodService.addFood(imageFile, userMail);
+            Food food = foodService.addFood(imageFile, notes, mealType);
 
-            log.info("Food uploaded successfully by user {}: Food ID {}", userMail, food.getUuid());
-            return ResponseEntity.ok("Food saved successfully with ID: " + food.getUuid());
+            log.info("Food uploaded successfully");
+            return ResponseEntity.ok("Food saved successfully");
 
         } catch (Exception e) {
-            log.error("Error uploading food image for user {}: {}", userMail, e.getMessage(), e);
+            log.error("Error uploading food image : {}",  e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error saving food: " + e.getMessage());
         }

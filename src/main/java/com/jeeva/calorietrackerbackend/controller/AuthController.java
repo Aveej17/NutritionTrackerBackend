@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,7 +24,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
-        log.info("📩 Register request received for email: {}", user.getEmail());
+        log.info("Register request received for email: {}", user.getEmail());
 
         try {
             User savedUser = authService.register(user);
@@ -44,7 +45,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
-        log.info("🔐 Login request received for: {}", request.getEmail());
+        log.info("Login request received for: {}", request.getEmail());
         try {
             log.info("Calling login Service ");
             String token = authService.login(request);
@@ -58,7 +59,17 @@ public class AuthController {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(new ErrorResponse(e.getMessage(), HttpStatus.UNAUTHORIZED.value(), System.currentTimeMillis()));
-        } catch (Exception e) {
+        }
+        catch (UsernameNotFoundException e) {
+            log.warn("No account found for {} - {}", request.getEmail(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(
+                            "No account found with this email",
+                            HttpStatus.NOT_FOUND.value(),
+                            System.currentTimeMillis()
+                    ));
+        }
+        catch (Exception e) {
             log.error(" Unexpected error during login for {}: {}", request.getEmail(), e.getMessage(), e);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)

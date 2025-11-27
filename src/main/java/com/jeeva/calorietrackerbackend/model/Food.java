@@ -4,6 +4,7 @@ package com.jeeva.calorietrackerbackend.model;
 import jakarta.persistence.*;
 
 
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -14,15 +15,21 @@ public class Food {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID uuid;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
     @Enumerated(EnumType.STRING)
     private MealType mealType;
-    private String calories;
-    private String fat;
-    private String protein;
     private String imageUrl;
     private String notes;
+    private Date date;
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
@@ -34,18 +41,6 @@ public class Food {
 
     public void setMealType(MealType mealType) {
         this.mealType = mealType;
-    }
-
-    public void setCalories(String calories) {
-        this.calories = calories;
-    }
-
-    public void setFat(String fat) {
-        this.fat = fat;
-    }
-
-    public void setProtein(String protein) {
-        this.protein = protein;
     }
 
     public void setImageUrl(String imageUrl) {
@@ -60,21 +55,8 @@ public class Food {
         return uuid;
     }
 
-
     public MealType getMealType() {
         return mealType;
-    }
-
-    public String getCalories() {
-        return calories;
-    }
-
-    public String getFat() {
-        return fat;
-    }
-
-    public String getProtein() {
-        return protein;
     }
 
     public String getImageUrl() {
