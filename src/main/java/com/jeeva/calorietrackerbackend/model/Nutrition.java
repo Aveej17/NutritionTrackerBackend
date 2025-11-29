@@ -24,6 +24,20 @@ public class Nutrition {
     private Long fiber;
 
 
+    @Override
+    public String toString() {
+        return "Nutrition{" +
+                "id=" + id +
+                ", foodUuid=" + (food != null ? food.getUuid() : null) +
+                ", name='" + name + '\'' +
+                ", protein=" + protein +
+                ", fat=" + fat +
+                ", calories=" + calories +
+                ", carbs=" + carbs +
+                ", fiber=" + fiber +
+                '}';
+    }
+
     public Long getId() {
         return id;
     }

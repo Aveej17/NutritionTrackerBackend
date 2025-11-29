@@ -14,6 +14,6 @@ public interface FoodRepository extends JpaRepository<Food, UUID> {
     @Override
     Food getById(UUID uuid);
 
-    @Query(value = "select * from food where user_id= :userid", nativeQuery = true )
-    List<Food> getAllFoodByUser(@Param("userid") String userid);
+    @Query(value = "select * from foods where user_id= :userid", nativeQuery = true )
+    List<Food> getAllFoodByUser(@Param("userid") Long userid);
 }

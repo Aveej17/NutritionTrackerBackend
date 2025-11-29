@@ -23,6 +23,18 @@ public class Food {
     private String notes;
     private Date date;
 
+    @Override
+    public String toString() {
+        return "Food{" +
+                "uuid=" + uuid +
+                ", userId=" + (user != null ? user.getUserId() : null) +
+                ", mealType=" + mealType +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", notes='" + notes + '\'' +
+                ", date=" + date +
+                '}';
+    }
+
     public Date getDate() {
         return date;
     }

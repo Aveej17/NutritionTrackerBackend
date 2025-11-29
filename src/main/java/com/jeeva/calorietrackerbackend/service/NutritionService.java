@@ -1,6 +1,7 @@
 package com.jeeva.calorietrackerbackend.service;
 
 
+import com.jeeva.calorietrackerbackend.dto.NutritionDTO;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.Nutrition;
 import com.jeeva.calorietrackerbackend.repository.NutritionRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -126,5 +128,24 @@ public class NutritionService {
         } catch (Exception ex) {
             log.error("Failed to insert nutrition entries for Food UUID: {}. Error: {}", food.getUuid(), ex.getMessage(), ex);
         }
+    }
+
+    public List<NutritionDTO> getNutrition(UUID uuid) {
+        log.info("Fetching Details for foodID: {}", uuid);
+        List<Nutrition> nutritionList = nutritionRepository.findByFoodUuid(uuid);
+
+        List<NutritionDTO> nutritionDTOList = new ArrayList<>();
+        for(Nutrition n : nutritionList){
+            NutritionDTO nutritionDTO = new NutritionDTO();
+            nutritionDTO.setName(n.getName());
+            nutritionDTO.setCalories(n.getCalories());
+            nutritionDTO.setCarbs(n.getCarbs());
+            nutritionDTO.setFat(n.getFat());
+            nutritionDTO.setProtein(n.getProtein());
+            nutritionDTO.setFiber(n.getFiber());
+            nutritionDTOList.add(nutritionDTO);
+        }
+        log.info("Nutrition List Fetched : "+nutritionList.toString());
+        return nutritionDTOList;
     }
 }

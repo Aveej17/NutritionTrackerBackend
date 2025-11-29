@@ -1,8 +1,12 @@
 package com.jeeva.calorietrackerbackend.service;
 
+import com.jeeva.calorietrackerbackend.dto.FoodDTO;
+import com.jeeva.calorietrackerbackend.dto.NutritionDTO;
 import com.jeeva.calorietrackerbackend.exception.InvalidMealTypeException;
+import com.jeeva.calorietrackerbackend.exception.UserNotFoundException;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.MealType;
+import com.jeeva.calorietrackerbackend.model.Nutrition;
 import com.jeeva.calorietrackerbackend.model.User;
 import com.jeeva.calorietrackerbackend.repository.FoodRepository;
 import com.jeeva.calorietrackerbackend.repository.UserRepository;
@@ -15,8 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -97,4 +101,40 @@ public class FoodService {
         return publicUrl + key;
     }
 
+    public List<FoodDTO> getFoods() {
+        String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        try {
+
+//            Not needed as user already verified
+            User user = userRepository.findByEmail(userMail).orElseThrow(
+                    () -> {
+                        log.error("user not found");
+                        return new UserNotFoundException("user not found");
+
+                    }
+            );
+
+            log.info("Getting food Details for user {}",userMail);
+            List<Food> foods = foodRepository.getAllFoodByUser(user.getUserId());
+
+            List<FoodDTO> foodDTOList = new ArrayList<>();
+            for (Food food : foods){
+                FoodDTO f = new FoodDTO();
+                f.setUuid(food.getUuid());
+                f.setImageUrl(food.getImageUrl());
+                List<NutritionDTO> n = nutritionService.getNutrition(food.getUuid());
+                f.setNutritionDTOList(n);
+                foodDTOList.add(f);
+            }
+            log.info(foods.toString());
+            log.info("Food DTO : "+foodDTOList);
+            return foodDTOList;
+        }
+        catch(Exception e){
+            log.error("Some Error occurred while fetching food for a user {}", userMail);
+            return null;
+        }
+
+    }
 }
