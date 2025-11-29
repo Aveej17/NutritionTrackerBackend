@@ -1,6 +1,8 @@
 package com.jeeva.calorietrackerbackend.repository;
 
 import com.jeeva.calorietrackerbackend.model.Food;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,7 @@ public interface FoodRepository extends JpaRepository<Food, UUID> {
     @Override
     Food getById(UUID uuid);
 
+    Page<Food> findByUserUserId(Long userId, Pageable pageable);
     @Query(value = "select * from foods where user_id= :userid", nativeQuery = true )
     List<Food> getAllFoodByUser(@Param("userid") Long userid);
 }

@@ -21,6 +21,8 @@ public class Food {
     private MealType mealType;
     private String imageUrl;
     private String notes;
+    @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
     @Override

@@ -29,7 +29,7 @@ public class AuthController {
         try {
             User savedUser = authService.register(user);
             log.info(" User registered successfully: {}", savedUser.getEmail());
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body("User Created Successfully");
         } catch (IllegalArgumentException e) {
             log.warn(" Registration failed - {}", e.getMessage());
             return ResponseEntity

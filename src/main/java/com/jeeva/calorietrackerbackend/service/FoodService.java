@@ -6,23 +6,24 @@ import com.jeeva.calorietrackerbackend.exception.InvalidMealTypeException;
 import com.jeeva.calorietrackerbackend.exception.UserNotFoundException;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.MealType;
-import com.jeeva.calorietrackerbackend.model.Nutrition;
+
 import com.jeeva.calorietrackerbackend.model.User;
 import com.jeeva.calorietrackerbackend.repository.FoodRepository;
 import com.jeeva.calorietrackerbackend.repository.UserRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class FoodService {
@@ -39,8 +40,6 @@ public class FoodService {
     private NutritionImageService nutritionImageService;
     @Autowired
     private NutritionService nutritionService;
-    @Value("${publicurl}")
-    private String publicUrl;
 
     public Food addFood(MultipartFile multipartFile, String notes, String mealType) throws Exception {
         log.debug("Starting addFood");
@@ -61,13 +60,13 @@ public class FoodService {
         }
         //TODO
         //1. Upload the image to a s3
-        String key;
+        String url;
         try {
-            key = nutritionImageService.uploadUserImage(multipartFile, user.getUserId());
+            url = nutritionImageService.uploadImage(multipartFile, user.getUserId());
         } catch (IOException e) {
             throw new RuntimeException("Image upload failed", e);
         }
-        String url = getPublicUrl(key);
+
         Food food = new Food();
         food.setNotes(notes);
         food.setUser(user);
@@ -97,9 +96,6 @@ public class FoodService {
         return food;
     }
 
-    public String getPublicUrl(String key) {
-        return publicUrl + key;
-    }
 
     public List<FoodDTO> getFoods() {
         String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -136,5 +132,73 @@ public class FoodService {
             return null;
         }
 
+    }
+
+    public Page<FoodDTO> getFoods(int page, int size) {
+
+        if (size < 0 || size > 10) {
+            throw new IllegalArgumentException("Page size must be greater than 0 and less than or equal to 10");
+        }
+        if (page < 0) {
+            throw new IllegalArgumentException("Page number cannot be negative");
+        }
+
+        String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.info("Fetching paginated foods for user={} | page={} size={}", userMail, page, size);
+
+        try {
+            // 1. Validate user
+            User user = userRepository.findByEmail(userMail)
+                    .orElseThrow(() -> {
+                        log.error("User not found for email={}", userMail);
+                        return new UserNotFoundException("User not found");
+                    });
+
+            // 2. Build pageable
+            Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+            log.debug("Pageable created: {}", pageable);
+
+            // 3. Fetch paginated foods
+            Page<Food> foodPage = foodRepository.findByUserUserId(user.getUserId(), pageable);
+            log.debug("Foods fetched: totalElements={}, totalPages={}",
+                    foodPage.getTotalElements(), foodPage.getTotalPages());
+
+            // 4. Map Food -> FoodDTO
+            Page<FoodDTO> dtoPage = foodPage.map(food -> {
+                FoodDTO dto = new FoodDTO();
+                dto.setUuid(food.getUuid());
+                dto.setImageUrl(food.getImageUrl());
+                dto.setNutritionDTOList(nutritionService.getNutrition(food.getUuid()));
+                return dto;
+            });
+
+            log.info("Successfully returning {} food items for user={}", dtoPage.getNumberOfElements(), userMail);
+            return dtoPage;
+
+        } catch (UserNotFoundException e) {
+            // Known exception
+            log.error("User not found while fetching foods: {}", e.getMessage());
+            throw e;
+
+        } catch (Exception e) {
+            // Unknown exception
+            log.error("Unexpected error while fetching paginated foods for user={} : {}", userMail, e.getMessage(), e);
+            throw new RuntimeException("Unable to fetch foods at the moment");
+        }
+    }
+
+
+
+
+    public void deleteFood(UUID foodId) {
+        try{
+            log.debug("foodId to delete : {}", foodId);
+            Food ft = foodRepository.getById(foodId);
+            nutritionImageService.deleteImage(ft.getImageUrl());
+            foodRepository.deleteById(foodId);
+        }
+        catch(Exception e){
+            log.error("Some error occurred while deleting the food");
+        }
     }
 }

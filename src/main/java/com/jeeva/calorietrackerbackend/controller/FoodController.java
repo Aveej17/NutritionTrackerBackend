@@ -6,6 +6,7 @@ import com.jeeva.calorietrackerbackend.service.FoodService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/foods")
@@ -47,7 +49,7 @@ public class FoodController {
         }
     }
 
-    @GetMapping()
+    @GetMapping("/all")
     public ResponseEntity<List<FoodDTO>> getFoods(){
         log.debug("Fetching the food Details");
         try{
@@ -59,6 +61,36 @@ public class FoodController {
         catch(Exception e) {
             log.error("Error fetching food details");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping()
+    public ResponseEntity<Page<FoodDTO>> getFoods(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        log.debug("Fetching paginated food details");
+
+        Page<FoodDTO> foodDTOPage = foodService.getFoods(page, size);
+
+        log.info("Food details fetched successfully (page={}, size={})", page, size);
+        return ResponseEntity.ok(foodDTOPage);
+
+    }
+
+    @DeleteMapping()
+    public ResponseEntity<String> deleteFood(@RequestParam("food-id") String foodId){
+
+        try{
+            log.debug("Calling Delete food Service");
+            log.info("foodId : {}",foodId);
+            UUID uuid = UUID.fromString(foodId);
+            foodService.deleteFood(uuid);
+            return ResponseEntity.ok("food deleted successfully");
+        }
+        catch(Exception e){
+            log.error("Unable to delete the food {}", foodId);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to delete food");
         }
     }
 }
