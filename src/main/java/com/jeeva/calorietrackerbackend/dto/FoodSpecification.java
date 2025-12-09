@@ -10,13 +10,13 @@ import java.util.Date;
 
 public class FoodSpecification {
 
-    // ✅ Mandatory filter: user
+
     public static Specification<Food> userEquals(Long userId) {
         return (root, query, cb) ->
                 cb.equal(root.get("user").get("userId"), userId);
     }
 
-    // ✅ Safe Date Range Filter (LocalDate → Date)
+
     public static Specification<Food> dateBetween(LocalDate start, LocalDate end) {
         return (root, query, cb) -> {
 
