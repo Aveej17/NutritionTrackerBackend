@@ -151,12 +151,9 @@ public class FoodService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
 
-        Date start = startDate != null ? Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : null;
-        Date end = endDate != null ? Date.from(endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()) : null;
-
         Specification<Food> spec = Specification
                 .where(FoodSpecification.userEquals(user.getUserId()))
-                .and(FoodSpecification.dateBetween(start, end))
+                .and(FoodSpecification.dateBetween(startDate, endDate))
                 .and(FoodSpecification.mealTypeEquals(mealType))
                 .and(FoodSpecification.notesContains(keyword));
 
