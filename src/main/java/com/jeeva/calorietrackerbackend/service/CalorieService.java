@@ -75,7 +75,7 @@ public class CalorieService {
 
 //            System.out.println(requestBody);
 
-            logger.debug("Response Body :{}", requestBody);
+            logger.debug("Request Body :{}", requestBody);
 
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);

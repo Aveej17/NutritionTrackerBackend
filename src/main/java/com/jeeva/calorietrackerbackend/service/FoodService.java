@@ -1,6 +1,7 @@
 package com.jeeva.calorietrackerbackend.service;
 
 import com.jeeva.calorietrackerbackend.dto.FoodDTO;
+import com.jeeva.calorietrackerbackend.dto.FoodSpecification;
 import com.jeeva.calorietrackerbackend.dto.NutritionDTO;
 import com.jeeva.calorietrackerbackend.exception.InvalidMealTypeException;
 import com.jeeva.calorietrackerbackend.exception.UserNotFoundException;
@@ -18,11 +19,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -133,6 +137,79 @@ public class FoodService {
         }
 
     }
+
+    public Page<FoodDTO> getFoodsDynamic(LocalDate startDate,
+                                         LocalDate endDate,
+                                         MealType mealType,
+                                         String keyword,
+                                         int page,
+                                         int size) {
+
+        String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(userMail)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("date").descending());
+
+        Date start = startDate != null ? Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : null;
+        Date end = endDate != null ? Date.from(endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()) : null;
+
+        Specification<Food> spec = Specification
+                .where(FoodSpecification.userEquals(user.getUserId()))
+                .and(FoodSpecification.dateBetween(start, end))
+                .and(FoodSpecification.mealTypeEquals(mealType))
+                .and(FoodSpecification.notesContains(keyword));
+
+        Page<Food> foods = foodRepository.findAll(spec, pageable);
+
+        return foods.map(food -> {
+            FoodDTO dto = new FoodDTO();
+            dto.setUuid(food.getUuid());
+            dto.setImageUrl(food.getImageUrl());
+            dto.setNutritionDTOList(nutritionService.getNutrition(food.getUuid()));
+            return dto;
+        });
+    }
+
+
+    public List<FoodDTO> getFoods(LocalDate startDate, LocalDate endDate, MealType mealType) {
+        String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByEmail(userMail)
+                .orElseThrow(() -> new UserNotFoundException("user not found"));
+
+        List<Food> foods;
+        Date start = startDate != null ? Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant()) : null;
+        Date end = endDate != null ? Date.from(endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()) : null;
+        if (mealType != null) {
+            foods = foodRepository.findFoodsByUserAndDateRangeAndMealType(
+                    user.getUserId(),
+                    start,
+                    end,
+                    mealType
+            );
+        } else {
+            foods = foodRepository.findFoodsByUserAndDateRange(
+                    user.getUserId(),
+                    start,
+                    end
+            );
+        }
+
+        // Map to DTO
+        List<FoodDTO> foodDTOList = new ArrayList<>();
+
+        for (Food food : foods) {
+            FoodDTO dto = new FoodDTO();
+            dto.setUuid(food.getUuid());
+            dto.setImageUrl(food.getImageUrl());
+            dto.setNutritionDTOList(nutritionService.getNutrition(food.getUuid()));
+            foodDTOList.add(dto);
+        }
+
+        return foodDTOList;
+    }
+
 
     public Page<FoodDTO> getFoods(int page, int size) {
 
