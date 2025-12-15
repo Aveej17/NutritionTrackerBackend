@@ -1,6 +1,7 @@
 package com.jeeva.calorietrackerbackend.controller;
 
 import com.jeeva.calorietrackerbackend.dto.FoodDTO;
+import com.jeeva.calorietrackerbackend.dto.FoodWithNutrition;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.MealType;
 import com.jeeva.calorietrackerbackend.service.FoodService;
@@ -36,12 +37,13 @@ public class FoodController {
     public ResponseEntity<String> uploadImage(
             @RequestParam("image") MultipartFile imageFile,
             @RequestParam("notes") String notes,
-            @RequestParam("mealType") String mealType){
+            @RequestParam("mealType") String mealType,
+            @RequestParam("name") String name){
 
         log.debug("Received upload-image request ");
 
         try {
-            Food food = foodService.addFood(imageFile, notes, mealType);
+            Food food = foodService.addFood(imageFile, notes, mealType, name);
 
             log.info("Food uploaded successfully");
             return ResponseEntity.ok("Food saved successfully");
@@ -61,6 +63,21 @@ public class FoodController {
 
             log.info("Food details fetched Successfully");
             return ResponseEntity.ok(foodDTOList);
+        }
+        catch(Exception e) {
+            log.error("Error fetching food details");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/all-new")
+    public ResponseEntity<List<FoodWithNutrition>> getFoodsWithNutrition(){
+        log.debug("Fetching the food Details");
+        try{
+            List<FoodWithNutrition> foodWithNutrition = foodService.getFoodsWithNutrition();
+
+            log.info("Food details fetched Successfully");
+            return ResponseEntity.ok(foodWithNutrition);
         }
         catch(Exception e) {
             log.error("Error fetching food details");

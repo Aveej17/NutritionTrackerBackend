@@ -2,6 +2,7 @@ package com.jeeva.calorietrackerbackend.service;
 
 import com.jeeva.calorietrackerbackend.dto.FoodDTO;
 import com.jeeva.calorietrackerbackend.dto.FoodSpecification;
+import com.jeeva.calorietrackerbackend.dto.FoodWithNutrition;
 import com.jeeva.calorietrackerbackend.dto.NutritionDTO;
 import com.jeeva.calorietrackerbackend.exception.InvalidMealTypeException;
 import com.jeeva.calorietrackerbackend.exception.UserNotFoundException;
@@ -45,7 +46,7 @@ public class FoodService {
     @Autowired
     private NutritionService nutritionService;
 
-    public Food addFood(MultipartFile multipartFile, String notes, String mealType) throws Exception {
+    public Food addFood(MultipartFile multipartFile, String notes, String mealType, String name) throws Exception {
         log.debug("Starting addFood");
         String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
         // Fetch the User entity
@@ -58,6 +59,7 @@ public class FoodService {
         log.debug("User fetched successfully: {}", user.getEmail());
 
         try {
+            log.debug("Meal type is : {}", mealType);
             MealType meal = MealType.valueOf(mealType.toUpperCase());
         } catch (Exception e) {
             throw new InvalidMealTypeException("MealType must be: breakfast, lunch, dinner, snack");
@@ -75,6 +77,7 @@ public class FoodService {
         food.setNotes(notes);
         food.setUser(user);
         food.setImageUrl(url);
+        food.setName(name);
         food.setDate(new Date());
         food.setMealType(MealType.valueOf(mealType.toUpperCase()));
         // Save to database
@@ -100,7 +103,70 @@ public class FoodService {
         return food;
     }
 
+    public List<FoodWithNutrition> getFoodsWithNutrition() {
+        String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
+        try {
 
+//            Not needed as user already verified
+            User user = userRepository.findByEmail(userMail).orElseThrow(
+                    () -> {
+                        log.error("user not found");
+                        return new UserNotFoundException("user not found");
+
+                    }
+            );
+
+            log.info("Getting food Details for user {}",userMail);
+            List<Food> foods = foodRepository.getAllFoodByUser(user.getUserId());
+
+
+            List<FoodWithNutrition> foodWithNutritionsList = new ArrayList<>();
+
+            for (Food food : foods){
+                FoodWithNutrition f = new FoodWithNutrition();
+                f.setName(food.getName());
+                f.setUuid(food.getUuid().toString());
+                f.setImageUrl(food.getImageUrl());
+                List<NutritionDTO> nutritions =
+                        nutritionService.getNutrition(food.getUuid());
+
+                for (NutritionDTO nut : nutritions) {
+
+                    if (nut.getProtein() != null) {
+                        f.setProtein(f.getProtein() + nut.getProtein());
+                    }
+
+                    if (nut.getFat() != null) {
+                        f.setFat(f.getFat() + nut.getFat());
+                    }
+
+                    if (nut.getCalories() != null) {
+                        f.setCalories(f.getCalories() + nut.getCalories());
+                    }
+
+                    if (nut.getCarbs() != null) {
+                        f.setCarbs(f.getCarbs() + nut.getCarbs());
+                    }
+
+                    if (nut.getFiber() != null) {
+                        f.setFiber(f.getFiber() + nut.getFiber());
+                    }
+                }
+
+
+
+                foodWithNutritionsList.add(f);
+            }
+            log.info(foods.toString());
+            log.info("Food With Nutrition : {}", foodWithNutritionsList);
+            return foodWithNutritionsList;
+
+        }
+        catch(Exception e){
+            log.error("Some Error occurred while fetching food for a user {}", userMail);
+            return null;
+        }
+    }
     public List<FoodDTO> getFoods() {
         String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
 

@@ -2,6 +2,8 @@ package com.jeeva.calorietrackerbackend.model;
 
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 
 import java.util.Date;
@@ -14,8 +16,15 @@ public class Food {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID uuid;
+
+    // Already table has some data so not null will violate handling that
+//    @Column(nullable = false, columnDefinition = "varchar(255) default 'Unknown Food'")
+
+    @Column(nullable = false)
+    private String name;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
     @Enumerated(EnumType.STRING)
     private MealType mealType;
@@ -37,6 +46,9 @@ public class Food {
                 '}';
     }
 
+    public void setName(String name){
+        this.name = name;
+    }
     public Date getDate() {
         return date;
     }
@@ -80,4 +92,6 @@ public class Food {
     public String getNotes() {
         return notes;
     }
+
+    public String getName(){return name; }
 }
