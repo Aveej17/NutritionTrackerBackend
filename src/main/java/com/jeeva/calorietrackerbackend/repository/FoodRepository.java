@@ -1,5 +1,6 @@
 package com.jeeva.calorietrackerbackend.repository;
 
+import com.jeeva.calorietrackerbackend.dto.FoodWithNutritionProjection;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.MealType;
 import org.springframework.data.domain.Page;
@@ -37,5 +38,51 @@ public interface FoodRepository extends JpaRepository<Food, UUID>, JpaSpecificat
             Date startDate,
             Date endDate
     );
+
+    @Query("""
+    SELECT\s
+        f.name AS name,
+        f.uuid AS uuid,
+        f.imageUrl AS imageUrl,
+        COALESCE(SUM(n.protein), 0) AS protein,
+        COALESCE(SUM(n.fat), 0) AS fat,
+        COALESCE(SUM(n.calories), 0) AS calories,
+        COALESCE(SUM(n.carbs), 0) AS carbs,
+        COALESCE(SUM(n.fiber), 0) AS fiber
+    FROM Food f
+    LEFT JOIN Nutrition n ON n.food.uuid = f.uuid
+    WHERE f.user.userId = :userId
+    GROUP BY f.uuid, f.name, f.imageUrl
+""")
+    List<FoodWithNutritionProjection> findFoodsWithNutrition(@Param("userId") Long userId);
+
+
+    @Query(
+            value = """
+    SELECT 
+        f.uuid AS uuid,
+        f.name AS name,
+        f.imageUrl AS imageUrl,
+        COALESCE(SUM(n.protein), 0) AS protein,
+        COALESCE(SUM(n.fat), 0) AS fat,
+        COALESCE(SUM(n.calories), 0) AS calories,
+        COALESCE(SUM(n.carbs), 0) AS carbs,
+        COALESCE(SUM(n.fiber), 0) AS fiber
+    FROM Food f
+    LEFT JOIN Nutrition n ON n.food.uuid = f.uuid
+    WHERE f.user.userId = :userId
+    GROUP BY f.uuid, f.name, f.imageUrl
+""",
+            countQuery = """
+    SELECT COUNT(f.uuid)
+    FROM Food f
+    WHERE f.user.userId = :userId
+"""
+    )
+    Page<FoodWithNutritionProjection> findFoodsWithNutritionPaged(
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
+
 
 }

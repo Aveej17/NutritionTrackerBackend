@@ -85,6 +85,19 @@ public class FoodController {
         }
     }
 
+    @GetMapping("/all-new-paged")
+    public ResponseEntity<Page<FoodWithNutrition>> getFoodsWithNutritionPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<FoodWithNutrition> foodPage =
+                foodService.getFoodsWithNutritionPaged(page, size);
+
+        return ResponseEntity.ok(foodPage);
+    }
+
+
+
     @GetMapping("/basic")
     public List<FoodDTO> getFoods(
             @RequestParam LocalDate startDate,

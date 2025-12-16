@@ -3,10 +3,12 @@ package com.jeeva.calorietrackerbackend.service;
 
 import com.jeeva.calorietrackerbackend.controller.AuthController;
 import com.jeeva.calorietrackerbackend.dto.AuthRequest;
+import com.jeeva.calorietrackerbackend.dto.AuthResponse;
 import com.jeeva.calorietrackerbackend.dto.UserDTO;
 import com.jeeva.calorietrackerbackend.model.User;
 import com.jeeva.calorietrackerbackend.repository.UserRepository;
 import com.jeeva.calorietrackerbackend.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -45,7 +47,7 @@ public class AuthService implements UserDetailsService {
         return savedUser;
     }
 
-    public String login(AuthRequest request){
+    public AuthResponse login(AuthRequest request){
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("No account found with this email"));
 
@@ -53,7 +55,13 @@ public class AuthService implements UserDetailsService {
             throw new RuntimeException("Invalid Credentials");
         }
 
-        return jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return new AuthResponse(
+                token,
+                user.getName(),
+                user.getEmail()
+        );
     }
 
     @Override
@@ -80,5 +88,19 @@ public class AuthService implements UserDetailsService {
         userDTO.setUserId(user.getUserId());
         userDTO.setName(user.getName());
         return  userDTO;
+    }
+
+    public void logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("Logout requested without valid Authorization header");
+            throw new IllegalArgumentException("Invalid logout request");
+        }
+
+        String token = authHeader.substring(7);
+
+        log.info("Logout successful for token ending with: {}",
+                token.substring(Math.max(0, token.length() - 6)));
     }
 }

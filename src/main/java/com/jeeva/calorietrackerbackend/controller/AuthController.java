@@ -5,6 +5,7 @@ import com.jeeva.calorietrackerbackend.dto.AuthResponse;
 import com.jeeva.calorietrackerbackend.exception.ErrorResponse;
 import com.jeeva.calorietrackerbackend.model.User;
 import com.jeeva.calorietrackerbackend.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -48,10 +51,9 @@ public class AuthController {
         log.info("Login request received for: {}", request.getEmail());
         try {
             log.info("Calling login Service ");
-            String token = authService.login(request);
+            AuthResponse response = authService.login(request);
             log.info(" Login successful for: {}", request.getEmail());
 
-            AuthResponse response = new AuthResponse(token);
             return ResponseEntity.status(HttpStatus.OK).body(response);
 
         } catch (IllegalArgumentException e) {
@@ -76,4 +78,13 @@ public class AuthController {
                     .body(new ErrorResponse("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR.value(), System.currentTimeMillis()));
         }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        authService.logout(request);
+        return ResponseEntity.ok(
+                Map.of("message", "Logged out successfully")
+        );
+    }
+
 }

@@ -1,9 +1,6 @@
 package com.jeeva.calorietrackerbackend.service;
 
-import com.jeeva.calorietrackerbackend.dto.FoodDTO;
-import com.jeeva.calorietrackerbackend.dto.FoodSpecification;
-import com.jeeva.calorietrackerbackend.dto.FoodWithNutrition;
-import com.jeeva.calorietrackerbackend.dto.NutritionDTO;
+import com.jeeva.calorietrackerbackend.dto.*;
 import com.jeeva.calorietrackerbackend.exception.InvalidMealTypeException;
 import com.jeeva.calorietrackerbackend.exception.UserNotFoundException;
 import com.jeeva.calorietrackerbackend.model.Food;
@@ -117,49 +114,64 @@ public class FoodService {
             );
 
             log.info("Getting food Details for user {}",userMail);
-            List<Food> foods = foodRepository.getAllFoodByUser(user.getUserId());
+//            List<Food> foods = foodRepository.getAllFoodByUser(user.getUserId());
+//
+//
+//            List<FoodWithNutrition> foodWithNutritionsList = new ArrayList<>();
+//
+//            for (Food food : foods){
+//                FoodWithNutrition f = new FoodWithNutrition();
+//                f.setName(food.getName());
+//                f.setUuid(food.getUuid().toString());
+//                f.setImageUrl(food.getImageUrl());
+//                List<NutritionDTO> nutritions =
+//                        nutritionService.getNutrition(food.getUuid());
+//
+//                for (NutritionDTO nut : nutritions) {
+//
+//                    if (nut.getProtein() != null) {
+//                        f.setProtein(f.getProtein() + nut.getProtein());
+//                    }
+//
+//                    if (nut.getFat() != null) {
+//                        f.setFat(f.getFat() + nut.getFat());
+//                    }
+//
+//                    if (nut.getCalories() != null) {
+//                        f.setCalories(f.getCalories() + nut.getCalories());
+//                    }
+//
+//                    if (nut.getCarbs() != null) {
+//                        f.setCarbs(f.getCarbs() + nut.getCarbs());
+//                    }
+//
+//                    if (nut.getFiber() != null) {
+//                        f.setFiber(f.getFiber() + nut.getFiber());
+//                    }
+//                }
+//
+//
+//
+//                foodWithNutritionsList.add(f);
+//            }
+            List<FoodWithNutritionProjection> projections =
+                    foodRepository.findFoodsWithNutrition(user.getUserId());
 
-
-            List<FoodWithNutrition> foodWithNutritionsList = new ArrayList<>();
-
-            for (Food food : foods){
+            return projections.stream().map(p -> {
                 FoodWithNutrition f = new FoodWithNutrition();
-                f.setName(food.getName());
-                f.setUuid(food.getUuid().toString());
-                f.setImageUrl(food.getImageUrl());
-                List<NutritionDTO> nutritions =
-                        nutritionService.getNutrition(food.getUuid());
-
-                for (NutritionDTO nut : nutritions) {
-
-                    if (nut.getProtein() != null) {
-                        f.setProtein(f.getProtein() + nut.getProtein());
-                    }
-
-                    if (nut.getFat() != null) {
-                        f.setFat(f.getFat() + nut.getFat());
-                    }
-
-                    if (nut.getCalories() != null) {
-                        f.setCalories(f.getCalories() + nut.getCalories());
-                    }
-
-                    if (nut.getCarbs() != null) {
-                        f.setCarbs(f.getCarbs() + nut.getCarbs());
-                    }
-
-                    if (nut.getFiber() != null) {
-                        f.setFiber(f.getFiber() + nut.getFiber());
-                    }
-                }
-
-
-
-                foodWithNutritionsList.add(f);
-            }
-            log.info(foods.toString());
-            log.info("Food With Nutrition : {}", foodWithNutritionsList);
-            return foodWithNutritionsList;
+                f.setName(p.getName());
+                f.setUuid(p.getUuid().toString());
+                f.setImageUrl(p.getImageUrl());
+                f.setProtein(p.getProtein());
+                f.setFat(p.getFat());
+                f.setCalories(p.getCalories());
+                f.setCarbs(p.getCarbs());
+                f.setFiber(p.getFiber());
+                return f;
+            }).toList();
+//            log.info(foods.toString());
+//            log.info("Food With Nutrition : {}", foodWithNutritionsList);
+//            return foodWithNutritionsList;
 
         }
         catch(Exception e){
@@ -167,6 +179,61 @@ public class FoodService {
             return null;
         }
     }
+
+
+    public Page<FoodWithNutrition> getFoodsWithNutritionPaged(int page, int size) {
+
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+
+        log.debug("Fetching paged food nutrition data for user={}, page={}, size={}",
+                email, page, size);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("User not found for email={}", email);
+                    return new UserNotFoundException("user not found");
+                });
+
+        if (size > 50) {
+            log.warn("Page size exceeded limit. userId={}, requestedSize={}",
+                    user.getUserId(), size);
+            throw new IllegalArgumentException("Page size cannot exceed 50");
+        }
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by("uuid").descending()
+        );
+
+        log.debug("Executing paged food query for userId={}", user.getUserId());
+
+        Page<FoodWithNutritionProjection> pageData =
+                foodRepository.findFoodsWithNutritionPaged(user.getUserId(), pageable);
+
+        log.info("Fetched {} foods (page {} of {}, totalElements={}) for userId={}",
+                pageData.getNumberOfElements(),
+                pageData.getNumber(),
+                pageData.getTotalPages(),
+                pageData.getTotalElements(),
+                user.getUserId());
+
+        return pageData.map(p -> {
+            FoodWithNutrition f = new FoodWithNutrition();
+            f.setUuid(p.getUuid().toString());
+            f.setName(p.getName());
+            f.setImageUrl(p.getImageUrl());
+            f.setProtein(p.getProtein());
+            f.setFat(p.getFat());
+            f.setCalories(p.getCalories());
+            f.setCarbs(p.getCarbs());
+            f.setFiber(p.getFiber());
+            return f;
+        });
+    }
+
+
     public List<FoodDTO> getFoods() {
         String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
 
