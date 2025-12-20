@@ -2,8 +2,10 @@ package com.jeeva.calorietrackerbackend.config;
 
 import com.jeeva.calorietrackerbackend.controller.AuthController;
 import com.jeeva.calorietrackerbackend.util.JwtAuthFilter;
+import com.jeeva.calorietrackerbackend.util.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -21,14 +23,16 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthController.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SecurityConfig.class);
 
     private final JwtAuthFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final RateLimitFilter rateLimitFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, AuthenticationProvider authenticationProvider) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, AuthenticationProvider authenticationProvider, RateLimitFilter rateLimitFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.authenticationProvider = authenticationProvider;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -43,7 +47,8 @@ public class SecurityConfig {
                     auth.anyRequest().authenticated();
                 })
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(rateLimitFilter, JwtAuthFilter.class);
 
         log.info("SecurityFilterChain successfully configured.");
         return http.build();

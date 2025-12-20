@@ -63,4 +63,8 @@ public class JwtUtil {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
+    public boolean isSubscribed(String token){
+        return false;
+    }
+
 }
