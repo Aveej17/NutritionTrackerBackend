@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // <-- ADD THIS
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/auth/**").permitAll();
+                    auth.requestMatchers("/api/payment/webhook").permitAll();
                     auth.anyRequest().authenticated();
                 })
                 .authenticationProvider(authenticationProvider)

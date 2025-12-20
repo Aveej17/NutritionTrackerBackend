@@ -19,7 +19,7 @@ import java.util.Collections;
 public class RateLimitFilter implements Filter {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RateLimitFilter.class);
-    private static final int MAX_REQUESTS = 5;
+    private static final int MAX_REQUESTS = 500;
     private static final int WINDOW_SECONDS = 600;
 
     private final StringRedisTemplate redisTemplate;
@@ -47,7 +47,8 @@ public class RateLimitFilter implements Filter {
         log.info("RateLimit hit: method={}, path={}",
                 req.getMethod(), req.getRequestURI());
         String path = req.getRequestURI();
-        if (path.startsWith("/api/auth")) {
+        if (path.startsWith("/api/auth") || path.startsWith("/api/payment/create-order") || path.startsWith("/api/payment/verify") || path.startsWith("/api/payment/webhook")) {
+            log.info("RateLimit Skipping");
             chain.doFilter(req, res);
             return;
         }

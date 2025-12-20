@@ -9,6 +9,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
 
 
 @Getter
@@ -25,6 +26,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
     private String password;
+    private String isPrimeUser = "false";
 
     public void setUserId(Long userId) { this.userId = userId; }
 
@@ -34,6 +36,13 @@ public class User {
 
     public void setPassword(String password) { this.password = password; }
 
+    public void setIsPrimeUser(String primeUser){
+        this.isPrimeUser = primeUser;
+    }
+
+    public String isPrimeUser(){
+        return this.isPrimeUser;
+    }
     public Long getUserId() {
         return userId;
     }
