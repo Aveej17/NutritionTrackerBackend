@@ -1,3 +1,60 @@
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<configuration>-->
+
+<!--    &lt;!&ndash; ========================-->
+<!--         Log File Path & Name-->
+<!--         ======================== &ndash;&gt;-->
+<!--    <property name="LOG_PATH" value="logs" />-->
+<!--    <property name="LOG_FILE" value="${LOG_PATH}/calorieTrackerBackend.log" />-->
+
+<!--    &lt;!&ndash; ========================-->
+<!--         Console Appender-->
+<!--         ======================== &ndash;&gt;-->
+<!--    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">-->
+<!--        <encoder>-->
+<!--            <pattern>-->
+<!--                %d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n-->
+<!--            </pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+<!--    &lt;!&ndash; ========================-->
+<!--         Rolling File Appender-->
+<!--         ======================== &ndash;&gt;-->
+<!--    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--        <file>${LOG_FILE}</file>-->
+
+<!--        &lt;!&ndash; Rotate daily and keep for 7 days &ndash;&gt;-->
+<!--        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
+<!--            <fileNamePattern>${LOG_PATH}/calorieTrackerBackend-%d{yyyy-MM-dd}.log</fileNamePattern>-->
+<!--            <maxHistory>7</maxHistory>-->
+<!--        </rollingPolicy>-->
+
+<!--        <encoder>-->
+<!--            <pattern>-->
+<!--                %d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n-->
+<!--            </pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+<!--    &lt;!&ndash; ========================-->
+<!--         Logger Configuration-->
+<!--         ======================== &ndash;&gt;-->
+<!--    <logger name="com.jeeva.calorietrackerbackend" level="DEBUG" additivity="false">-->
+<!--        <appender-ref ref="CONSOLE" />-->
+<!--        <appender-ref ref="FILE" />-->
+<!--    </logger>-->
+
+<!--    &lt;!&ndash; ========================-->
+<!--         Root Logger-->
+<!--         ======================== &ndash;&gt;-->
+<!--    <root level="INFO">-->
+<!--        <appender-ref ref="CONSOLE" />-->
+<!--        <appender-ref ref="FILE" />-->
+<!--    </root>-->
+
+<!--</configuration>-->
+
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 

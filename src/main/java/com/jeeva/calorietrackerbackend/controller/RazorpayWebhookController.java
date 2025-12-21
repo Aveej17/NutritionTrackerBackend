@@ -1,7 +1,6 @@
 package com.jeeva.calorietrackerbackend.controller;
 
 import com.jeeva.calorietrackerbackend.service.PaymentService;
-import com.jeeva.calorietrackerbackend.service.UserService;
 import org.apache.commons.codec.binary.Hex;
 import org.json.JSONObject;
 import org.slf4j.Logger;
