@@ -7,10 +7,13 @@ public class AuthResponse {
 
     private String email;
 
-    public AuthResponse(String token, String name, String email) {
+    private boolean isPrimeUser;
+
+    public AuthResponse(String token, String name, String email, boolean isPrimeUser) {
         this.token = token;
         this.name = name;
         this.email = email;
+        this.isPrimeUser = isPrimeUser;
     }
 
     public String getToken() {
@@ -28,4 +31,6 @@ public class AuthResponse {
     public String getEmail() {
         return email;
     }
+
+    public boolean getIsPrimeUser(){return isPrimeUser;}
 }

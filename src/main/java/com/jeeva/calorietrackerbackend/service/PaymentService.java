@@ -72,7 +72,7 @@ public class PaymentService {
         paymentRepository.save(payment);
 
         User user = payment.getUser();
-        user.setIsPrimeUser("true");
+        user.setIsPrimeUser(true);
         userService.activateSubscription(user);
     }
 

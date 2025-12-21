@@ -9,6 +9,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @Component
@@ -17,11 +19,15 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String SECRET_KEY;
 
-    public String generateToken(String email){
+    public String generateToken(String email, boolean isPrimeUser){
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("isPrimeUser", isPrimeUser);
+
         return Jwts.builder()
-                .setSubject(email)
+                .setClaims(claims)
+                .setSubject(email)                 // identity
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis()+1000*60*60)) // 1 Hour
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }
@@ -64,7 +70,6 @@ public class JwtUtil {
     }
 
     public boolean isSubscribed(String token){
-        return false;
+        return extractClaim(token, claims -> claims.get("isPrimeUser", Boolean.class));
     }
-
 }

@@ -26,7 +26,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
     private String password;
-    private String isPrimeUser = "false";
+    private boolean isPrimeUser = false;
 
     public void setUserId(Long userId) { this.userId = userId; }
 
@@ -36,13 +36,11 @@ public class User {
 
     public void setPassword(String password) { this.password = password; }
 
-    public void setIsPrimeUser(String primeUser){
+    public void setIsPrimeUser(boolean primeUser){
         this.isPrimeUser = primeUser;
     }
 
-    public String isPrimeUser(){
-        return this.isPrimeUser;
-    }
+
     public Long getUserId() {
         return userId;
     }
@@ -53,6 +51,10 @@ public class User {
 
     public String getEmail() {
         return email;
+    }
+
+    public boolean getIsPrimeUser(){
+        return isPrimeUser;
     }
 
     public String getPassword() {

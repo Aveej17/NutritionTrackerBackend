@@ -1,12 +1,10 @@
 package com.jeeva.calorietrackerbackend.config;
 
-import com.jeeva.calorietrackerbackend.controller.AuthController;
+
 import com.jeeva.calorietrackerbackend.util.JwtUtil;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 
@@ -19,8 +17,8 @@ import java.util.Collections;
 public class RateLimitFilter implements Filter {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RateLimitFilter.class);
-    private static final int MAX_REQUESTS = 500;
-    private static final int WINDOW_SECONDS = 600;
+    private static final int MAX_REQUESTS = 5;
+    private static final int WINDOW_SECONDS = 300;
 
     private final StringRedisTemplate redisTemplate;
     private final JwtUtil jwtUtil;

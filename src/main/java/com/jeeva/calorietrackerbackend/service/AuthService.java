@@ -55,12 +55,13 @@ public class AuthService implements UserDetailsService {
             throw new RuntimeException("Invalid Credentials");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getIsPrimeUser());
 
         return new AuthResponse(
                 token,
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getIsPrimeUser()
         );
     }
 
