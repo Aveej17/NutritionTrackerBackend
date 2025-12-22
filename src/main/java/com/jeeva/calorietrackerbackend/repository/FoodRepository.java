@@ -84,5 +84,28 @@ public interface FoodRepository extends JpaRepository<Food, UUID>, JpaSpecificat
             Pageable pageable
     );
 
+    @Query("""
+    SELECT
+        f.name AS name,
+        f.uuid AS uuid,
+        f.imageUrl AS imageUrl,
+        COALESCE(SUM(n.protein), 0) AS protein,
+        COALESCE(SUM(n.fat), 0) AS fat,
+        COALESCE(SUM(n.calories), 0) AS calories,
+        COALESCE(SUM(n.carbs), 0) AS carbs,
+        COALESCE(SUM(n.fiber), 0) AS fiber
+    FROM Food f
+    LEFT JOIN Nutrition n ON n.food.uuid = f.uuid
+    WHERE f.user.userId = :userId
+      AND f.date >= :startDate
+      AND f.date < :endDate
+    GROUP BY f.uuid, f.name, f.imageUrl
+""")
+    List<FoodWithNutritionProjection> findFoodsWithNutritionByDateRange(
+            @Param("userId") Long userId,
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+
 
 }

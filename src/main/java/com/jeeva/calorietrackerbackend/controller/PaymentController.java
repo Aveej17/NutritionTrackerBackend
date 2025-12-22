@@ -1,6 +1,7 @@
 package com.jeeva.calorietrackerbackend.controller;
 
 
+import com.jeeva.calorietrackerbackend.dto.AuthResponse;
 import com.jeeva.calorietrackerbackend.service.PaymentService;
 import com.jeeva.calorietrackerbackend.service.UserService;
 import com.razorpay.Order;
@@ -83,7 +84,7 @@ public class PaymentController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<String> verifyPayment(@RequestBody Map<String, String> data) {
+    public ResponseEntity<?> verifyPayment(@RequestBody Map<String, String> data) {
 
         String orderId = data.get("razorpay_order_id");
         String paymentId = data.get("razorpay_payment_id");
@@ -105,8 +106,8 @@ public class PaymentController {
         log.info("Payment verified successfully | orderId={}", orderId);
 
         // TODO:
-         paymentService.markSuccess(orderId, paymentId);
-        return ResponseEntity.ok("Subscription activated");
+         AuthResponse authResponse = paymentService.markSuccessUser(orderId, paymentId);
+        return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/cancel")

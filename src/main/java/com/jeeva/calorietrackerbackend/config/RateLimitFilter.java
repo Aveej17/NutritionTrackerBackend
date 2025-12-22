@@ -45,8 +45,12 @@ public class RateLimitFilter implements Filter {
         log.info("RateLimit hit: method={}, path={}",
                 req.getMethod(), req.getRequestURI());
         String path = req.getRequestURI();
-        if (path.startsWith("/api/auth") || path.startsWith("/api/payment/create-order") || path.startsWith("/api/payment/verify") || path.startsWith("/api/payment/webhook")) {
-            log.info("RateLimit Skipping");
+        if (path.contains("/api/auth")
+                || path.contains("/api/payment/create-order")
+                || path.contains("/api/payment/verify")
+                || path.contains("/api/payment/webhook")) {
+
+            log.info("RateLimit Skipping for {}", path);
             chain.doFilter(req, res);
             return;
         }
@@ -58,7 +62,9 @@ public class RateLimitFilter implements Filter {
         boolean isSubscribed = false;
 
         if (token != null) {
+            log.info("validating token for prime User");
             isSubscribed = jwtUtil.isSubscribed(token);
+            log.info("IsPrimeUser {}", isSubscribed);
         }
 
 

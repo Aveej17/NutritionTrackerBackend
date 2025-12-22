@@ -2,6 +2,7 @@ package com.jeeva.calorietrackerbackend.controller;
 
 import com.jeeva.calorietrackerbackend.dto.FoodDTO;
 import com.jeeva.calorietrackerbackend.dto.FoodWithNutrition;
+import com.jeeva.calorietrackerbackend.dto.FoodWithNutritionProjection;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.MealType;
 import com.jeeva.calorietrackerbackend.service.FoodService;
@@ -53,6 +54,22 @@ public class FoodController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error saving food: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/today")
+    public ResponseEntity<List<FoodWithNutrition>> getTodayFoods() {
+
+        return ResponseEntity.ok(foodService.getTodayFoods());
+    }
+
+    @GetMapping("/last-7-days")
+    public List<FoodWithNutrition> last7Days() {
+        return foodService.getLast7DaysFoods();
+    }
+
+    @GetMapping("/last-30-days")
+    public List<FoodWithNutrition> last30Days() {
+        return foodService.getLast30DaysFoods();
     }
 
     @GetMapping("/all")

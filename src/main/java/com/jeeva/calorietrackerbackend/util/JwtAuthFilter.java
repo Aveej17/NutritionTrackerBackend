@@ -78,4 +78,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
         log.debug("JwtAuthFilter: Request processing finished for {}", request.getRequestURI());
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        return path.startsWith("/api/auth")
+                || path.startsWith("/api/payment/webhook");
+    }
 }

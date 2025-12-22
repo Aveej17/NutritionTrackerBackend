@@ -1,12 +1,14 @@
 package com.jeeva.calorietrackerbackend.service;
 
 import com.jeeva.calorietrackerbackend.controller.PaymentController;
+import com.jeeva.calorietrackerbackend.dto.AuthResponse;
 import com.jeeva.calorietrackerbackend.model.Payment;
 import com.jeeva.calorietrackerbackend.model.PaymentStatus;
 import com.jeeva.calorietrackerbackend.model.User;
 import com.jeeva.calorietrackerbackend.repository.PaymentRepository;
 
 import com.jeeva.calorietrackerbackend.repository.UserRepository;
+import com.jeeva.calorietrackerbackend.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,9 @@ public class PaymentService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     public PaymentService(UserService userService) {
         this.userService = userService;
@@ -54,6 +59,38 @@ public class PaymentService {
     }
 
     @Transactional
+    public AuthResponse markSuccessUser(String orderId, String paymentId) {
+        Payment payment = paymentRepository.findByOrderId(orderId).orElseThrow(() ->
+                new IllegalStateException("Payment not found for orderId=" + orderId)
+        );
+        // Idempotency guard
+        if (payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
+            return null; // already processed
+        }
+
+        // Do not override cancelled payments
+        if (payment.getPaymentStatus() == PaymentStatus.CANCELED) {
+            return null;
+        }
+        payment.setPaymentId(paymentId);
+        payment.setPaymentStatus(PaymentStatus.COMPLETED);
+        paymentRepository.save(payment);
+
+        User user = payment.getUser();
+        user.setIsPrimeUser(true);
+        userService.activateSubscription(user);
+
+        String token = jwtUtil.generateToken(user.getEmail(), user.getIsPrimeUser());
+
+        return new AuthResponse(
+                token,
+                user.getName(),
+                user.getEmail(),
+                user.getIsPrimeUser()
+        );
+    }
+
+    @Transactional
     public void markSuccess(String orderId, String paymentId) {
         Payment payment = paymentRepository.findByOrderId(orderId).orElseThrow(() ->
                 new IllegalStateException("Payment not found for orderId=" + orderId)
@@ -75,7 +112,6 @@ public class PaymentService {
         user.setIsPrimeUser(true);
         userService.activateSubscription(user);
     }
-
     @Transactional
     public void markCancel(String orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId).orElseThrow(() ->

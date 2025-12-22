@@ -10,6 +10,7 @@ import com.jeeva.calorietrackerbackend.model.User;
 import com.jeeva.calorietrackerbackend.repository.FoodRepository;
 import com.jeeva.calorietrackerbackend.repository.UserRepository;
 
+import com.jeeva.calorietrackerbackend.util.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -408,4 +409,84 @@ public class FoodService {
             log.error("Some error occurred while deleting the food");
         }
     }
+
+    public List<FoodWithNutrition> getTodayFoods() {
+        return getFoodsByRange(
+                DateUtils.startOfToday(),
+                DateUtils.startOfTomorrow()
+        );
+    }
+
+    public List<FoodWithNutrition> getLast7DaysFoods() {
+        return getFoodsByRange(
+                DateUtils.startOfLast7Days(),
+                DateUtils.startOfTomorrow()
+        );
+    }
+
+    public List<FoodWithNutrition> getLast30DaysFoods() {
+
+        User user = getLoggedInUser();
+
+        Date start = DateUtils.startOfLast30Days();
+        Date end = DateUtils.startOfTomorrow();
+
+        List<FoodWithNutritionProjection> projections =
+                foodRepository.findFoodsWithNutritionByDateRange(
+                        user.getUserId(), start, end
+                );
+
+        return projections.stream().map(p -> {
+            FoodWithNutrition f = new FoodWithNutrition();
+            f.setUuid(p.getUuid().toString());
+            f.setName(p.getName());
+            f.setImageUrl(p.getImageUrl());
+            f.setProtein(p.getProtein());
+            f.setFat(p.getFat());
+            f.setCalories(p.getCalories());
+            f.setCarbs(p.getCarbs());
+            f.setFiber(p.getFiber());
+            return f;
+        }).toList();
+    }
+
+    private List<FoodWithNutrition> getFoodsByRange(Date start, Date end) {
+
+        User user = getLoggedInUser();
+
+        return foodRepository
+                .findFoodsWithNutritionByDateRange(
+                        user.getUserId(), start, end
+                )
+                .stream()
+                .map(p -> {
+                    FoodWithNutrition f = new FoodWithNutrition();
+                    f.setUuid(p.getUuid().toString());
+                    f.setName(p.getName());
+                    f.setImageUrl(p.getImageUrl());
+                    f.setProtein(p.getProtein());
+                    f.setFat(p.getFat());
+                    f.setCalories(p.getCalories());
+                    f.setCarbs(p.getCarbs());
+                    f.setFiber(p.getFiber());
+                    return f;
+                })
+                .toList();
+    }
+
+
+
+    private User getLoggedInUser() {
+        String userMail = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        return userRepository.findByEmail(userMail)
+                .orElseThrow(() -> {
+                    log.error("User not found for email={}", userMail);
+                    return new UserNotFoundException("User not found");
+                });
+    }
+
+
 }
