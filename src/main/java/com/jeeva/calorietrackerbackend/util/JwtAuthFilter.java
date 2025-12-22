@@ -38,9 +38,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         log.debug("JwtAuthFilter: Processing request {}", request.getRequestURI());
 
         final String authHeader = request.getHeader("Authorization");
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.debug("No Authorization header or not Bearer token, skipping filter");
-            filterChain.doFilter(request, response);
+
+        if (authHeader == null) {
+            sendUnauthorized(response, "Authorization header is missing");
+            return;
+        }
+
+
+        if (!authHeader.startsWith("Bearer ")) {
+            sendUnauthorized(response, "Authorization header must start with Bearer");
             return;
         }
 
@@ -78,6 +84,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
         log.debug("JwtAuthFilter: Request processing finished for {}", request.getRequestURI());
     }
+
+    private void sendUnauthorized(HttpServletResponse response, String message)
+            throws IOException {
+
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+
+        response.getWriter().write("""
+        {
+          "error": "UNAUTHORIZED",
+          "message": "%s"
+        }
+        """.formatted(message));
+    }
+
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
