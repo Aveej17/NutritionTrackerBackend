@@ -11,6 +11,7 @@ import com.jeeva.calorietrackerbackend.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -54,6 +55,21 @@ public class AuthService implements UserDetailsService {
         if(!passwordEncoder.matches(request.getPassword(), user.getPassword())){
             throw new IllegalArgumentException("Invalid Credentials");
         }
+
+        String token = jwtUtil.generateToken(user.getEmail(), user.getIsPrimeUser());
+
+        return new AuthResponse(
+                token,
+                user.getName(),
+                user.getEmail(),
+                user.getIsPrimeUser()
+        );
+    }
+
+    public AuthResponse login(String userMail){
+
+        User user = userRepository.findByEmail(userMail)
+                .orElseThrow(() -> new UsernameNotFoundException("No account found with this email"));
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getIsPrimeUser());
 

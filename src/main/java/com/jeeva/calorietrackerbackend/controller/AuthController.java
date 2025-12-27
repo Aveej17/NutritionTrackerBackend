@@ -11,6 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
@@ -85,6 +89,28 @@ public class AuthController {
         return ResponseEntity.ok(
                 Map.of("message", "Logged out successfully")
         );
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(Authentication authentication) {
+
+        log.info("/me called");
+        if (authentication == null ||
+                authentication instanceof AnonymousAuthenticationToken) {
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse(
+                            "Unauthorized",
+                            HttpStatus.UNAUTHORIZED.value(),
+                            System.currentTimeMillis()
+                    ));
+        }
+
+        String email = authentication.getName();
+        log.info("/me email : {}", email);
+
+        AuthResponse response = authService.login(email);
+        return ResponseEntity.ok(response);
     }
 
 }
