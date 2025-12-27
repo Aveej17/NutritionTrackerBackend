@@ -52,7 +52,7 @@ public class AuthService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("No account found with this email"));
 
         if(!passwordEncoder.matches(request.getPassword(), user.getPassword())){
-            throw new RuntimeException("Invalid Credentials");
+            throw new IllegalArgumentException("Invalid Credentials");
         }
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getIsPrimeUser());

@@ -17,7 +17,7 @@ import java.util.Collections;
 public class RateLimitFilter implements Filter {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RateLimitFilter.class);
-    private static final int MAX_REQUESTS = 5;
+    private static final int MAX_REQUESTS = 1000;
     private static final int WINDOW_SECONDS = 300;
 
     private final StringRedisTemplate redisTemplate;
