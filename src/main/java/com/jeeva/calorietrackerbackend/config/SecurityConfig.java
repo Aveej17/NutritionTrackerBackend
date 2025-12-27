@@ -62,7 +62,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of("http://localhost:5173",
-                "https://nutrition-tracker-front-end-sdmv.vercel.app/")); // frontend URL
+                "https://nutrition-tracker-front-end-sdmv.vercel.app/",
+                "https://nutrition-tracker-front-end.vercel.app/")); // frontend URL
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
