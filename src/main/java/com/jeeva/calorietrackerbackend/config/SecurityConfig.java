@@ -43,8 +43,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // <-- ADD THIS
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/auth/**").permitAll();
+                    auth.requestMatchers("/api/auth/login",
+                            "/api/auth/register").permitAll();
                     auth.requestMatchers("/api/payment/webhook").permitAll();
+                    auth.requestMatchers("/api/auth/me").authenticated();
                     auth.anyRequest().authenticated();
                 })
                 .authenticationProvider(authenticationProvider)
