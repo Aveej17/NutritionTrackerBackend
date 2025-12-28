@@ -1,6 +1,7 @@
 package com.jeeva.calorietrackerbackend.repository;
 
 import com.jeeva.calorietrackerbackend.dto.FoodWithNutritionProjection;
+import com.jeeva.calorietrackerbackend.dto.NutritionTotalsDto;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.MealType;
 import org.springframework.data.domain.Page;
@@ -86,9 +87,11 @@ public interface FoodRepository extends JpaRepository<Food, UUID>, JpaSpecificat
 
     @Query("""
     SELECT
+        f.date AS date,
         f.name AS name,
         f.uuid AS uuid,
         f.imageUrl AS imageUrl,
+        f.mealType AS mealType,
         COALESCE(SUM(n.protein), 0) AS protein,
         COALESCE(SUM(n.fat), 0) AS fat,
         COALESCE(SUM(n.calories), 0) AS calories,
@@ -106,6 +109,28 @@ public interface FoodRepository extends JpaRepository<Food, UUID>, JpaSpecificat
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate
     );
+
+    @Query("""
+    SELECT
+        COALESCE(SUM(n.calories), 0),
+        COALESCE(SUM(n.protein), 0),
+        COALESCE(SUM(n.carbs), 0),
+        COALESCE(SUM(n.fat), 0)
+    FROM Food f
+    LEFT JOIN Nutrition n ON n.food.uuid = f.uuid
+    WHERE f.user.userId = :userId
+      AND f.date >= :startDate
+      AND f.date < :endDate
+""")
+    Object[] getTotalsRaw(
+            @Param("userId") Long userId,
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate
+    );
+
+
+
+
 
 
 }

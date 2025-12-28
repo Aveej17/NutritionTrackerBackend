@@ -1,5 +1,9 @@
 package com.jeeva.calorietrackerbackend.dto;
 
+import com.jeeva.calorietrackerbackend.model.MealType;
+
+import java.util.Date;
+
 public class FoodWithNutrition {
 
     private String uuid;
@@ -12,6 +16,9 @@ public class FoodWithNutrition {
     private Long carbs = 0L;
     private Long fiber = 0L;
 
+    private Date date;
+
+    private MealType mealType;
     public String getUuid() {
         return uuid;
     }
@@ -44,6 +51,14 @@ public class FoodWithNutrition {
         return fiber;
     }
 
+    public Date getDate(){
+        return date;
+    }
+
+    public MealType getMealType() {
+        return mealType;
+    }
+
     public void setUuid(String uuid) {
         this.uuid = uuid;
     }
@@ -74,5 +89,13 @@ public class FoodWithNutrition {
 
     public void setFiber(Long fiber) {
         this.fiber = fiber;
+    }
+
+    public void setDate(Date date){
+        this.date = date;
+    }
+
+    public void setMealType(MealType mealType){
+        this.mealType = mealType;
     }
 }

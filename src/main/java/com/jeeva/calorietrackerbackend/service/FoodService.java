@@ -426,28 +426,35 @@ public class FoodService {
 
     public List<FoodWithNutrition> getLast30DaysFoods() {
 
-        User user = getLoggedInUser();
+        return getFoodsByRange(
+                DateUtils.startOfLast30Days(),
+                DateUtils.startOfTomorrow()
+        );
 
-        Date start = DateUtils.startOfLast30Days();
-        Date end = DateUtils.startOfTomorrow();
-
-        List<FoodWithNutritionProjection> projections =
-                foodRepository.findFoodsWithNutritionByDateRange(
-                        user.getUserId(), start, end
-                );
-
-        return projections.stream().map(p -> {
-            FoodWithNutrition f = new FoodWithNutrition();
-            f.setUuid(p.getUuid().toString());
-            f.setName(p.getName());
-            f.setImageUrl(p.getImageUrl());
-            f.setProtein(p.getProtein());
-            f.setFat(p.getFat());
-            f.setCalories(p.getCalories());
-            f.setCarbs(p.getCarbs());
-            f.setFiber(p.getFiber());
-            return f;
-        }).toList();
+//        User user = getLoggedInUser();
+//
+//        Date start = DateUtils.startOfLast30Days();
+//        Date end = DateUtils.startOfTomorrow();
+//
+//        List<FoodWithNutritionProjection> projections =
+//                foodRepository.findFoodsWithNutritionByDateRange(
+//                        user.getUserId(), start, end
+//                );
+//
+//        return projections.stream().map(p -> {
+//            FoodWithNutrition f = new FoodWithNutrition();
+//            f.setUuid(p.getUuid().toString());
+//            f.setName(p.getName());
+//            f.setImageUrl(p.getImageUrl());
+//            f.setProtein(p.getProtein());
+//            f.setFat(p.getFat());
+//            f.setCalories(p.getCalories());
+//            f.setCarbs(p.getCarbs());
+//            f.setFiber(p.getFiber());
+//            f.setDate(p.getDate());
+//            f.setMealType(p.getMealType());
+//            return f;
+//        }).toList();
     }
 
     private List<FoodWithNutrition> getFoodsByRange(Date start, Date end) {
@@ -469,6 +476,8 @@ public class FoodService {
                     f.setCalories(p.getCalories());
                     f.setCarbs(p.getCarbs());
                     f.setFiber(p.getFiber());
+                    f.setDate(p.getDate());
+                    f.setMealType(p.getMealType());
                     return f;
                 })
                 .toList();
@@ -487,6 +496,42 @@ public class FoodService {
                     return new UserNotFoundException("User not found");
                 });
     }
+
+
+    public NutritionTotalsDto getTotals(Date start, Date end) {
+
+        log.info("Going to get totals from DB");
+
+        Object[] row = foodRepository.getTotalsRaw(
+                getLoggedInUser().getUserId(),
+                start,
+                end
+        );
+
+        // 🔍 Log the raw DB row safely
+        if (row == null) {
+            log.warn("Totals query returned NULL row");
+            return new NutritionTotalsDto(0, 0, 0, 0);
+        }
+
+
+        log.debug("row.length = {}", row.length);
+        for (int i = 0; i < row.length; i++) {
+            log.debug("row[{}] = {} (class={})", i, row[i], row[i].getClass());
+        }
+
+
+        log.debug("Totals raw row = {}", Arrays.toString(row));
+        Object[] r = (Object[]) row[0];
+        return new NutritionTotalsDto(
+                r[0], // calories
+                r[1], // protein
+                r[2], // carbs
+                r[3]  // fat
+        );
+    }
+
+
 
 
 }
