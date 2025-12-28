@@ -62,10 +62,24 @@ public class RateLimitFilter implements Filter {
         boolean isSubscribed = false;
 
         if (token != null) {
-            log.info("validating token for prime User");
-            isSubscribed = jwtUtil.isSubscribed(token);
-            log.info("IsPrimeUser {}", isSubscribed);
+            try {
+                isSubscribed = jwtUtil.isSubscribed(token);
+            } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.setContentType("application/json");
+                res.getWriter().write("""
+        {
+          "error": "Session expired. Please login again."
         }
+        """);
+                return;
+            } catch (Exception e) {
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.getWriter().write("{\"error\":\"Invalid token\"}");
+                return;
+            }
+        }
+
 
 
         if (isSubscribed) {

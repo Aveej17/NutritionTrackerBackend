@@ -1,11 +1,11 @@
 package com.jeeva.calorietrackerbackend.controller;
 
-import com.jeeva.calorietrackerbackend.dto.AuthRequest;
-import com.jeeva.calorietrackerbackend.dto.AuthResponse;
+import com.jeeva.calorietrackerbackend.dto.*;
 import com.jeeva.calorietrackerbackend.exception.ErrorResponse;
 import com.jeeva.calorietrackerbackend.model.User;
 import com.jeeva.calorietrackerbackend.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,26 +29,43 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        log.info("Register request received for email: {}", user.getEmail());
+//    @PostMapping("/register")
+//    public ResponseEntity<?> register(@RequestBody User user) {
+//        log.info("Register request received for email: {}", user.getEmail());
+//
+//        try {
+//            User savedUser = authService.register(user);
+//            log.info(" User registered successfully: {}", savedUser.getEmail());
+//            return ResponseEntity.status(HttpStatus.CREATED).body("User Created Successfully");
+//        } catch (IllegalArgumentException e) {
+//            log.warn(" Registration failed - {}", e.getMessage());
+//            return ResponseEntity
+//                    .status(HttpStatus.BAD_REQUEST)
+//                    .body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value(), System.currentTimeMillis()));
+//        } catch (Exception e) {
+//            log.error(" Unexpected error during registration for {}: {}", user.getEmail(), e.getMessage(), e);
+//            return ResponseEntity
+//                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ErrorResponse("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR.value(), System.currentTimeMillis()));
+//        }
+//    }
 
-        try {
-            User savedUser = authService.register(user);
-            log.info(" User registered successfully: {}", savedUser.getEmail());
-            return ResponseEntity.status(HttpStatus.CREATED).body("User Created Successfully");
-        } catch (IllegalArgumentException e) {
-            log.warn(" Registration failed - {}", e.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value(), System.currentTimeMillis()));
-        } catch (Exception e) {
-            log.error(" Unexpected error during registration for {}: {}", user.getEmail(), e.getMessage(), e);
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR.value(), System.currentTimeMillis()));
+    @PostMapping("/register")
+    public ResponseEntity<?> register(
+            @Valid @RequestBody SignupRequest request
+    ) {
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Passwords do not match");
         }
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword());
+
+        UserResponse userResponse = authService.register(user);
+        return ResponseEntity.ok(userResponse);
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
@@ -109,7 +126,7 @@ public class AuthController {
         String email = authentication.getName();
         log.info("/me email : {}", email);
 
-        AuthResponse response = authService.login(email);
+        MeResponse response = authService.meCheck(email);
         return ResponseEntity.ok(response);
     }
 
