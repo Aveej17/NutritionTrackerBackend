@@ -2,15 +2,14 @@ package com.jeeva.calorietrackerbackend.service;
 
 
 import com.jeeva.calorietrackerbackend.controller.AuthController;
-import com.jeeva.calorietrackerbackend.dto.AuthRequest;
-import com.jeeva.calorietrackerbackend.dto.AuthResponse;
-import com.jeeva.calorietrackerbackend.dto.UserDTO;
+import com.jeeva.calorietrackerbackend.dto.*;
 import com.jeeva.calorietrackerbackend.model.User;
 import com.jeeva.calorietrackerbackend.repository.UserRepository;
 import com.jeeva.calorietrackerbackend.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -30,7 +29,7 @@ public class AuthService implements UserDetailsService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    public User register(User user) {
+    public UserResponse register(User user) {
         log.info("Attempting to register user with email: {}", user.getEmail());
 
         // Check if email already registered
@@ -45,7 +44,12 @@ public class AuthService implements UserDetailsService {
         User savedUser = userRepository.save(user);
 
         log.info("User registered successfully: {}", savedUser.getEmail());
-        return savedUser;
+
+
+        return new UserResponse(
+                savedUser.getName(),
+                savedUser.getEmail()
+        );
     }
 
     public AuthResponse login(AuthRequest request){
@@ -66,19 +70,16 @@ public class AuthService implements UserDetailsService {
         );
     }
 
-    public AuthResponse login(String userMail){
+    public MeResponse meCheck(String userMail){
 
         User user = userRepository.findByEmail(userMail)
-                .orElseThrow(() -> new UsernameNotFoundException("No account found with this email"));
-
-        String token = jwtUtil.generateToken(user.getEmail(), user.getIsPrimeUser());
-
-        return new AuthResponse(
-                token,
-                user.getName(),
-                user.getEmail(),
-                user.getIsPrimeUser()
-        );
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found"));
+        return new MeResponse(
+                    user.getName(),
+                    user.getEmail(),
+                    user.getIsPrimeUser()
+            );
     }
 
     @Override

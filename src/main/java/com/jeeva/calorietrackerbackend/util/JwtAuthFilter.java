@@ -57,10 +57,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String userEmail = null;
         try {
             userEmail = jwtUtil.extractUsername(jwt);
-            log.debug("Extracted userEmail from JWT: {}", userEmail);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.debug("Session Expired {} ", jwt);
+            sendUnauthorized(response, "Session expired. Please login again.");
+            return;
         } catch (Exception e) {
-            log.warn("Failed to extract username from JWT: {}", e.getMessage());
+            log.debug("Invalid token {} ", jwt);
+            sendUnauthorized(response, "Invalid token");
+            return;
         }
+
 
         if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {

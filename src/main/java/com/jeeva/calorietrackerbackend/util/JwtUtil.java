@@ -28,6 +28,7 @@ public class JwtUtil {
                 .setSubject(email)                 // identity
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
+//                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 )) // 1 minute
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }
@@ -65,11 +66,23 @@ public class JwtUtil {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    private boolean isTokenExpired(String token){
-        return extractClaim(token, Claims::getExpiration).before(new Date());
+    private boolean isTokenExpired(String token) {
+        try {
+            Date expiration = extractClaim(token, Claims::getExpiration);
+            return expiration.before(new Date());
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return true;
+        }
     }
 
-    public boolean isSubscribed(String token){
-        return extractClaim(token, claims -> claims.get("isPrimeUser", Boolean.class));
+
+    public boolean isSubscribed(String token) {
+        try {
+            return extractClaim(token,
+                    claims -> claims.get("isPrimeUser", Boolean.class));
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return false;
+        }
     }
+
 }
