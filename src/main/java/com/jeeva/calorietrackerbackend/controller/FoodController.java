@@ -1,11 +1,10 @@
 package com.jeeva.calorietrackerbackend.controller;
 
-import com.jeeva.calorietrackerbackend.dto.FoodDTO;
-import com.jeeva.calorietrackerbackend.dto.FoodWithNutrition;
-import com.jeeva.calorietrackerbackend.dto.FoodWithNutritionProjection;
+import com.jeeva.calorietrackerbackend.dto.*;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.MealType;
 import com.jeeva.calorietrackerbackend.service.FoodService;
+import com.jeeva.calorietrackerbackend.util.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +70,27 @@ public class FoodController {
     public List<FoodWithNutrition> last30Days() {
         return foodService.getLast30DaysFoods();
     }
+
+    @GetMapping("/totals")
+    public NutritionTotalsDto getTotals(@RequestParam String filter) {
+
+        log.info("totals controller gets invoked");
+
+        Date start;
+        Date end = DateUtils.startOfTomorrow();
+
+        switch (filter) {
+            case "today" -> start = DateUtils.startOfToday();
+            case "week"  -> start = DateUtils.startOfLast7Days();
+            case "month" -> start = DateUtils.startOfLast30Days();
+            default -> throw new IllegalArgumentException("Invalid filter: " + filter);
+        }
+        log.info("Start : {}", start);
+        log.info("end : {} ", end);
+        return foodService.getTotals(start, end);
+    }
+
+
 
     @GetMapping("/all")
     public ResponseEntity<List<FoodDTO>> getFoods(){

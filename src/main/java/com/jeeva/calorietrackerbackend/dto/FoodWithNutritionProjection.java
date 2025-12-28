@@ -1,5 +1,8 @@
 package com.jeeva.calorietrackerbackend.dto;
 
+import com.jeeva.calorietrackerbackend.model.MealType;
+
+import java.util.Date;
 import java.util.UUID;
 
 public interface FoodWithNutritionProjection {
@@ -13,4 +16,6 @@ public interface FoodWithNutritionProjection {
     Long getCalories();
     Long getCarbs();
     Long getFiber();
+    Date getDate();
+    MealType getMealType();
 }
