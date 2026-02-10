@@ -4,6 +4,8 @@ package com.jeeva.calorietrackerbackend.service;
 import com.jeeva.calorietrackerbackend.dto.NutritionDTO;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.Nutrition;
+import com.jeeva.calorietrackerbackend.model.NutritionReference;
+import com.jeeva.calorietrackerbackend.repository.NutritionReferenceRepository;
 import com.jeeva.calorietrackerbackend.repository.NutritionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,7 +25,111 @@ public class NutritionService {
     private NutritionRepository nutritionRepository;
 
     @Autowired
+    private NutritionReferenceRepository nutritionReferenceRepository;
+
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
+
+
+    /**
+     * Build nutrition list from reference table
+     */
+//    public List<Map<String, Object>> buildNutritionFromReference(List<String> foodsList) {
+//
+//        List<Map<String, Object>> result = new ArrayList<>();
+//
+//        for (String foodName : foodsList) {
+//
+//            Optional<NutritionReference> optionalRef =
+//                    nutritionReferenceRepository.findByFoodNameIgnoreCase(foodName.toLowerCase());
+//
+//            if (optionalRef.isEmpty()) {
+//                continue; // Skip unknown food
+//            }
+//
+//            NutritionReference ref = optionalRef.get();
+//
+//            // Default portion 100g (you can change later)
+//            double grams = 100.0;
+//            double factor = grams / 100.0;
+//
+//            Map<String, Object> foodMap = new HashMap<>();
+//            foodMap.put("name", ref.getFoodName());
+//            foodMap.put("grams", grams);
+//            foodMap.put("calories", round(ref.getCaloriesPer100g() * factor));
+//            foodMap.put("protein", round(ref.getProteinPer100g() * factor));
+//            foodMap.put("carbs", round(ref.getCarbsPer100g() * factor));
+//            foodMap.put("fat", round(ref.getFatPer100g() * factor));
+//            foodMap.put("fiber", round(ref.getFiberPer100g() * factor));
+//
+//            result.add(foodMap);
+//        }
+//
+//        return result;
+//    }
+
+    public List<Map<String, Object>> buildNutritionFromReference(List<String> foodsList) {
+
+        log.info("Building nutrition from reference table for detected foods: {}", foodsList);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        if (foodsList == null || foodsList.isEmpty()) {
+            log.warn("Food list is empty. Nothing to process.");
+            return result;
+        }
+
+        for (String foodName : foodsList) {
+
+            if (foodName == null || foodName.trim().isEmpty()) {
+                log.warn("Encountered null/empty food name. Skipping.");
+                continue;
+            }
+
+            String normalized = foodName.toLowerCase().trim();
+            log.info("Looking up nutrition reference for food: '{}'", normalized);
+
+            Optional<NutritionReference> optionalRef =
+                    nutritionReferenceRepository.findByFoodNameIgnoreCase(normalized);
+
+            if (optionalRef.isEmpty()) {
+                log.warn("No nutrition reference found for food: '{}'", normalized);
+                continue; // Skip unknown food
+            }
+
+            NutritionReference ref = optionalRef.get();
+
+            log.info("Found reference for '{}'. Calories per 100g: {}",
+                    ref.getFoodName(), ref.getCaloriesPer100g());
+
+            // Default portion 100g (can later replace with user input)
+            double grams = 100.0;
+            double factor = grams / 100.0;
+
+            Map<String, Object> foodMap = new HashMap<>();
+            foodMap.put("name", ref.getFoodName());
+            foodMap.put("grams", grams);
+            foodMap.put("calories", round(ref.getCaloriesPer100g() * factor));
+            foodMap.put("protein", round(ref.getProteinPer100g() * factor));
+            foodMap.put("carbs", round(ref.getCarbsPer100g() * factor));
+            foodMap.put("fat", round(ref.getFatPer100g() * factor));
+            foodMap.put("fiber", round(ref.getFiberPer100g() * factor));
+
+            log.info("Computed nutrition for '{}': {}", ref.getFoodName(), foodMap);
+
+            result.add(foodMap);
+        }
+
+        log.info("Finished building nutrition list. Total valid foods processed: {}", result.size());
+
+        return result;
+    }
+
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
 
     public void addNutritionDetails(List<Map<String, Object>> foods, Food food) {
 

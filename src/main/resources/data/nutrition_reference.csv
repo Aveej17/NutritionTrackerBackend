@@ -1,0 +1,136 @@
+food_name,calories_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g,fiber_per_100g
+white rice cooked,130,2.7,28,0.3,0.4
+brown rice cooked,112,2.6,23,0.9,1.8
+basmati rice,121,3.5,25,0.4,0.6
+jeera rice,150,3,28,3,1
+fried rice,168,4,30,4,1
+chapati,297,9,55,3,4
+roti,297,9,55,3,4
+naan,310,9,55,6,2
+paratha,330,8,45,15,3
+poori,296,6,38,13,2
+idli,146,4,28,1,1
+dosa,168,4,27,3.7,1
+masala dosa,210,5,30,8,2
+upma,180,4,28,5,2
+pongal,220,6,32,8,3
+oats,389,17,66,7,10
+cornflakes,357,8,84,0.4,3
+bread white,265,9,49,3.2,2.7
+bread brown,247,13,41,4.2,7
+multigrain bread,252,12,43,4,6
+butter,717,0.9,0.1,81,0
+ghee,900,0,0,100,0
+vegetable oil,884,0,0,100,0
+olive oil,884,0,0,100,0
+paneer,265,18,1,21,0
+tofu,76,8,1.9,4.8,0.3
+cheese cheddar,402,25,1.3,33,0
+mozzarella,280,28,3,17,0
+curd,61,3.5,4.7,3.3,0
+yogurt greek,97,10,3.6,5,0
+milk whole,60,3.2,5,3.3,0
+milk skim,34,3.4,5,0.1,0
+buttermilk,40,3.3,4.8,1,0
+cream,340,2,3,36,0
+ice cream vanilla,207,3.5,24,11,0
+egg whole boiled,155,13,1.1,11,0
+egg white,52,11,0.7,0.2,0
+egg yolk,322,16,3.6,27,0
+omelette plain,154,11,1.5,12,0
+scrambled egg,148,10,2,11,0
+chicken breast,165,31,0,3.6,0
+chicken thigh,209,26,0,10.9,0
+chicken curry,190,20,3,12,0
+grilled chicken,180,28,0,7,0
+fried chicken,260,24,8,17,0
+mutton cooked,294,25,0,21,0
+beef cooked,250,26,0,15,0
+pork cooked,242,27,0,14,0
+fish generic,206,22,0,12,0
+salmon,208,20,0,13,0
+tuna,132,28,0,1,0
+prawns,99,24,0,1,0
+rajma cooked,127,8.7,22,0.5,6
+chole cooked,164,9,27,2.6,7
+dal cooked,116,8,20,1,7
+moong dal,105,7,19,1,5
+toor dal,110,8,20,1,6
+masoor dal,116,9,20,0.4,8
+black chana,164,9,27,2.6,7
+white chana,164,9,27,2.6,7
+soybeans,446,36,30,20,9
+soya chunks,345,52,33,0.5,13
+peanuts,567,26,16,49,8
+almonds,579,21,22,50,12
+cashews,553,18,30,44,3
+walnuts,654,15,14,65,7
+pistachios,560,20,28,45,10
+sunflower seeds,584,21,20,51,8
+chia seeds,486,17,42,31,34
+flax seeds,534,18,29,42,27
+sesame seeds,573,17,23,50,12
+potato boiled,87,2,20,0.1,2
+sweet potato,86,1.6,20,0.1,3
+tomato,18,0.9,3.9,0.2,1.2
+onion,40,1.1,9,0.1,1.7
+carrot,41,0.9,10,0.2,2.8
+cucumber,16,0.7,3.6,0.1,0.5
+spinach,23,2.9,3.6,0.4,2.2
+broccoli,34,2.8,7,0.4,2.6
+cauliflower,25,1.9,5,0.3,2
+capsicum,20,0.9,4.6,0.2,1.7
+brinjal,25,1,6,0.2,3
+lady finger,33,2,7,0.1,3
+cabbage,25,1.3,6,0.1,2.5
+peas,81,5,14,0.4,5
+corn boiled,96,3.4,21,1.5,2.4
+beetroot,43,1.6,10,0.2,2.8
+mushroom,22,3.1,3.3,0.3,1
+garlic,149,6.4,33,0.5,2
+ginger,80,1.8,18,0.8,2
+apple,52,0.3,14,0.2,2.4
+banana,89,1.1,23,0.3,2.6
+orange,47,0.9,12,0.1,2.4
+mango,60,0.8,15,0.4,1.6
+papaya,43,0.5,11,0.3,1.7
+watermelon,30,0.6,8,0.2,0.4
+pineapple,50,0.5,13,0.1,1.4
+grapes,69,0.7,18,0.2,0.9
+guava,68,2.6,14,1,5
+pomegranate,83,1.7,19,1.2,4
+kiwi,61,1.1,15,0.5,3
+pear,57,0.4,15,0.1,3
+strawberry,32,0.7,8,0.3,2
+blueberries,57,0.7,14,0.3,2.4
+raspberries,52,1.2,12,0.7,6.5
+dates,282,2.5,75,0.4,8
+figs,74,0.8,19,0.3,3
+dry fruits mix,450,10,40,30,6
+burger veg,250,12,30,10,3
+burger chicken,295,17,30,12,2
+pizza veg,266,11,33,10,2
+pizza chicken,285,13,30,11,2
+sandwich veg,230,8,35,7,3
+sandwich chicken,250,15,30,8,2
+samosa,262,6,31,17,2
+pakora,300,7,28,20,3
+vada,290,6,35,15,2
+biryani veg,180,4,30,5,2
+biryani chicken,210,10,28,8,1
+noodles,138,4,25,2,1
+pasta boiled,131,5,25,1,1.5
+macaroni,157,6,30,1,2
+spaghetti,158,6,31,1,1.8
+lasagna,135,7,19,4,1.5
+ketchup,112,1.3,26,0.2,0.3
+mayonnaise,680,1,0.6,75,0
+mustard sauce,66,4,6,4,3
+chocolate milk,83,3.2,12,2.5,0
+dark chocolate,546,4.9,61,31,7
+milk chocolate,535,7.7,59,30,3
+protein powder,400,80,10,7,3
+whey isolate,370,90,3,1,0
+granola,471,10,64,20,8
+energy bar,410,12,50,15,5
+trail mix,462,14,44,29,6

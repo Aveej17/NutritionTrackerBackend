@@ -81,7 +81,13 @@ public class FoodService {
         // Save to database
         Food savedFood = foodRepository.save(food);
         //2. generate the nutrition details;
-        List<Map<String, Object>> foods = calorieService.analyzeImageGetNutrition(url);
+//        List<Map<String, Object>> foods = calorieService.analyzeImageGetNutrition(url);
+        List<String> foodsList = calorieService.detectFoodItems(url);
+
+        List<Map<String, Object>> foods =
+                nutritionService.buildNutritionFromReference(foodsList);
+
+
         nutritionService.addNutritionDetails(foods, savedFood);
         log.info("Food saved successfully for user {}: Food ID {}", userMail, savedFood.getUuid());
 
@@ -399,14 +405,44 @@ public class FoodService {
 
 
     public void deleteFood(UUID foodId) {
-        try{
-            log.debug("foodId to delete : {}", foodId);
-            Food ft = foodRepository.getById(foodId);
-            nutritionImageService.deleteImage(ft.getImageUrl());
-            foodRepository.deleteById(foodId);
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.debug("Delete food request for foodId={} from user={}", foodId, userEmail);
+
+        // Validate user exists
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> {
+                    log.error("User not found for email={}", userEmail);
+                    return new UserNotFoundException("User not found");
+                });
+
+        // Check if food exists
+        Food food = foodRepository.findById(foodId)
+                .orElseThrow(() -> {
+                    log.warn("Food not found with id={}", foodId);
+                    throw new IllegalArgumentException("Food not found with id: " + foodId);
+                });
+
+        // Verify user owns this food (authorization check)
+        if (!food.getUser().getUserId().equals(user.getUserId())) {
+            log.warn("Unauthorized delete attempt: user={} tried to delete food={} owned by user={}",
+                    userEmail, foodId, food.getUser().getEmail());
+            throw new IllegalArgumentException("You are not authorized to delete this food");
         }
-        catch(Exception e){
-            log.error("Some error occurred while deleting the food");
+
+        try {
+            // Delete associated image from storage
+            if (food.getImageUrl() != null && !food.getImageUrl().isEmpty()) {
+                log.debug("Deleting image for foodId={}: {}", foodId, food.getImageUrl());
+                nutritionImageService.deleteImage(food.getImageUrl());
+            }
+
+            // Delete food record from database (nutrition records will cascade delete)
+            foodRepository.deleteById(foodId);
+            log.info("Food deleted successfully: foodId={}, user={}", foodId, userEmail);
+
+        } catch (Exception e) {
+            log.error("Error deleting image for foodId={}: {}", foodId, e.getMessage(), e);
+            throw new RuntimeException("Failed to delete food: " + e.getMessage(), e);
         }
     }
 
@@ -460,6 +496,7 @@ public class FoodService {
     private List<FoodWithNutrition> getFoodsByRange(Date start, Date end) {
 
         User user = getLoggedInUser();
+        log.info("Fetching food for user id : {}",user.getUserId());
 
         return foodRepository
                 .findFoodsWithNutritionByDateRange(

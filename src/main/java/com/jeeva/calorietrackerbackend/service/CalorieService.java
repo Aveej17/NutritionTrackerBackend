@@ -36,12 +36,123 @@ public class CalorieService {
     private String apiKey;
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public CalorieService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    @SuppressWarnings("null")
+
+
+    public List<String> detectFoodItems(String imageUrl) {
+
+        try {
+            String prompt = """
+                    Analyze the given image and detect all food items present.
+                    Return ONLY JSON in this format:
+                    {
+                      "foods": [
+                        { "name": "Chapati" },
+                        { "name": "Dal" }
+                      ]
+                    }
+                    No explanation. No extra text.
+                    """;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + apiKey);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "google/gemini-2.0-flash-001");
+
+            List<Map<String, Object>> messages = new ArrayList<>();
+
+            Map<String, Object> message = new HashMap<>();
+            message.put("role", "user");
+
+            List<Map<String, Object>> content = new ArrayList<>();
+            content.add(Map.of("type", "text", "text", prompt));
+            content.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl)));
+
+            message.put("content", content);
+            messages.add(message);
+
+            requestBody.put("messages", messages);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<String> response =
+                    restTemplate.exchange(aiApiUrl, HttpMethod.POST, request, String.class);
+
+            if (response.getBody() == null || response.getBody().isBlank()) {
+                logger.error("Empty AI response");
+                return new ArrayList<>();
+            }
+
+            logger.info("AI response : {}", response.getBody());
+
+            return extractFoodNames(response.getBody());
+
+        } catch (Exception e) {
+            logger.error("Error detecting food items: {}", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    private List<String> extractFoodNames(String jsonResponse) {
+
+        List<String> foodNames = new ArrayList<>();
+
+        try {
+            JsonNode root = objectMapper.readTree(jsonResponse);
+
+            JsonNode contentNode =
+                    root.path("choices")
+                            .get(0)
+                            .path("message")
+                            .path("content");
+
+            if (contentNode.isMissingNode()) {
+                logger.error("Content node missing in AI response");
+                return foodNames;
+            }
+
+            String contentText = contentNode.asText();
+
+            logger.info("Raw AI content before cleaning: {}", contentText);
+
+            contentText = contentText
+                    .replace("```json", "")
+                    .replace("```", "")
+                    .trim();
+
+            logger.info("Cleaned AI content: {}", contentText);
+
+            // Now parse safely
+            JsonNode foodJson = objectMapper.readTree(contentText);
+
+            JsonNode foods = foodJson.path("foods");
+
+            if (foods.isArray()) {
+                for (JsonNode food : foods) {
+                    String name = food.path("name").asText(null);
+                    if (name != null) {
+                        foodNames.add(name.toLowerCase().trim());
+                    }
+                }
+            }
+
+            logger.info("Extracted food names: {}", foodNames);
+
+        } catch (Exception e) {
+            logger.error("Error parsing AI response: {}", e.getMessage(), e);
+        }
+
+        return foodNames;
+    }
+
+
     public List<Map<String, Object>> analyzeImageGetNutrition(String imageUrl) throws Exception {
         try {
             // **Single Prompt:** AI detects food and provides nutritional data

@@ -1,6 +1,7 @@
 package com.jeeva.calorietrackerbackend.controller;
 
 import com.jeeva.calorietrackerbackend.dto.*;
+import com.jeeva.calorietrackerbackend.exception.UserNotFoundException;
 import com.jeeva.calorietrackerbackend.model.Food;
 import com.jeeva.calorietrackerbackend.model.MealType;
 import com.jeeva.calorietrackerbackend.service.FoodService;
@@ -191,19 +192,54 @@ public class FoodController {
 
     }
 
-    @DeleteMapping()
+    @DeleteMapping("/delete")
     public ResponseEntity<String> deleteFood(@RequestParam("food-id") String foodId){
 
-        try{
-            log.debug("Calling Delete food Service");
-            log.info("foodId : {}",foodId);
-            UUID uuid = UUID.fromString(foodId);
+        log.debug("Delete food request received for foodId={}", foodId);
+
+        try {
+            // Validate and parse UUID
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(foodId);
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid UUID format provided: {}", foodId);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid food ID format. Must be a valid UUID");
+            }
+
+            // Call service to delete food
             foodService.deleteFood(uuid);
-            return ResponseEntity.ok("food deleted successfully");
-        }
-        catch(Exception e){
-            log.error("Unable to delete the food {}", foodId);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to delete food");
+            log.info("Food deleted successfully: foodId={}", foodId);
+            return ResponseEntity.ok("Food deleted successfully");
+
+        } catch (UserNotFoundException e) {
+            log.error("User not found while deleting food: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Authentication error: " + e.getMessage());
+
+        } catch (IllegalArgumentException e) {
+            // Could be either "Food not found" or "Unauthorized"
+            String message = e.getMessage();
+            if (message.contains("not authorized")) {
+                log.warn("Unauthorized delete attempt: {}", message);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(message);
+            } else {
+                log.warn("Food not found: {}", message);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(message);
+            }
+
+        } catch (RuntimeException e) {
+            log.error("Error deleting food with id={}: {}", foodId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting food: " + e.getMessage());
+
+        } catch (Exception e) {
+            log.error("Unexpected error deleting food with id={}: {}", foodId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Unexpected error while deleting food");
         }
     }
 }
