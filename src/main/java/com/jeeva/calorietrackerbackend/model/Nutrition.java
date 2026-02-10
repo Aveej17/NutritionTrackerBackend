@@ -22,6 +22,7 @@ public class Nutrition {
     private Long calories;
     private Long carbs;
     private Long fiber;
+    private Double quantity; // quantity in grams
 
 
     @Override
@@ -35,6 +36,7 @@ public class Nutrition {
                 ", calories=" + calories +
                 ", carbs=" + carbs +
                 ", fiber=" + fiber +
+                ", quantity=" + quantity +
                 '}';
     }
 
@@ -92,5 +94,13 @@ public class Nutrition {
 
     public Long getFiber() {
         return fiber;
+    }
+
+    public Double getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Double quantity) {
+        this.quantity = quantity;
     }
 }

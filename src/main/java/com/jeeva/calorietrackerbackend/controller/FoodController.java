@@ -39,12 +39,13 @@ public class FoodController {
             @RequestParam("image") MultipartFile imageFile,
             @RequestParam("notes") String notes,
             @RequestParam("mealType") String mealType,
-            @RequestParam("name") String name){
+            @RequestParam("name") String name,
+            @RequestParam(value = "quantity", required = false, defaultValue = "100.0") Double quantity){
 
-        log.debug("Received upload-image request ");
+        log.debug("Received upload-image request with quantity: {}g", quantity);
 
         try {
-            Food food = foodService.addFood(imageFile, notes, mealType, name);
+            Food food = foodService.addFood(imageFile, notes, mealType, name, quantity);
 
             log.info("Food uploaded successfully");
             return ResponseEntity.ok("Food saved successfully");

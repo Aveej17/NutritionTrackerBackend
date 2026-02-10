@@ -70,14 +70,23 @@ public class NutritionService {
 //    }
 
     public List<Map<String, Object>> buildNutritionFromReference(List<String> foodsList) {
+        return buildNutritionFromReference(foodsList, 100.0); // Default to 100g
+    }
 
-        log.info("Building nutrition from reference table for detected foods: {}", foodsList);
+    public List<Map<String, Object>> buildNutritionFromReference(List<String> foodsList, Double quantity) {
+
+        log.info("Building nutrition from reference table for detected foods: {} with quantity: {}g", foodsList, quantity);
 
         List<Map<String, Object>> result = new ArrayList<>();
 
         if (foodsList == null || foodsList.isEmpty()) {
             log.warn("Food list is empty. Nothing to process.");
             return result;
+        }
+
+        if (quantity == null || quantity <= 0) {
+            log.warn("Invalid quantity provided: {}. Using default 100g", quantity);
+            quantity = 100.0;
         }
 
         for (String foodName : foodsList) {
@@ -93,9 +102,21 @@ public class NutritionService {
             Optional<NutritionReference> optionalRef =
                     nutritionReferenceRepository.findByFoodNameIgnoreCase(normalized);
 
+            // Fallback: If exact match not found, search for foods containing the keyword
             if (optionalRef.isEmpty()) {
-                log.warn("No nutrition reference found for food: '{}'", normalized);
-                continue; // Skip unknown food
+                log.info("No exact match found for '{}'. Searching for partial matches...", normalized);
+                List<NutritionReference> matchingFoods = 
+                        nutritionReferenceRepository.findBestMatchingFoods(normalized);
+                
+                if (!matchingFoods.isEmpty()) {
+                    // Use the first (most relevant) match
+                    optionalRef = Optional.of(matchingFoods.get(0));
+                    log.info("Found best matching food '{}' for search term '{}'", 
+                            optionalRef.get().getFoodName(), normalized);
+                } else {
+                    log.warn("No nutrition reference found (even with partial match) for food: '{}'", normalized);
+                    continue; // Skip unknown food
+                }
             }
 
             NutritionReference ref = optionalRef.get();
@@ -103,13 +124,12 @@ public class NutritionService {
             log.info("Found reference for '{}'. Calories per 100g: {}",
                     ref.getFoodName(), ref.getCaloriesPer100g());
 
-            // Default portion 100g (can later replace with user input)
-            double grams = 100.0;
-            double factor = grams / 100.0;
+            // Use provided quantity (in grams)
+            double factor = quantity / 100.0;
 
             Map<String, Object> foodMap = new HashMap<>();
             foodMap.put("name", ref.getFoodName());
-            foodMap.put("grams", grams);
+            foodMap.put("quantity", quantity); // Store quantity in grams
             foodMap.put("calories", round(ref.getCaloriesPer100g() * factor));
             foodMap.put("protein", round(ref.getProteinPer100g() * factor));
             foodMap.put("carbs", round(ref.getCarbsPer100g() * factor));
@@ -167,6 +187,7 @@ public class NutritionService {
             n.setProtein(toLong(mp.get("protein")));
             n.setFat(toLong(mp.get("fat")));
             n.setFiber(toLong(mp.get("fiber")));
+            n.setQuantity((Double) mp.get("quantity")); // Set quantity in grams
             n.setFood(food);   // set the FK to Food entity
             return n;
         }).collect(Collectors.toList());

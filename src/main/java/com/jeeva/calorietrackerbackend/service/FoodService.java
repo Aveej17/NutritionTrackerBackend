@@ -45,7 +45,11 @@ public class FoodService {
     private NutritionService nutritionService;
 
     public Food addFood(MultipartFile multipartFile, String notes, String mealType, String name) throws Exception {
-        log.debug("Starting addFood");
+        return addFood(multipartFile, notes, mealType, name, 100.0); // Default to 100g
+    }
+
+    public Food addFood(MultipartFile multipartFile, String notes, String mealType, String name, Double quantity) throws Exception {
+        log.debug("Starting addFood with quantity: {}g", quantity);
         String userMail = SecurityContextHolder.getContext().getAuthentication().getName();
         // Fetch the User entity
         User user = userRepository.findByEmail(userMail)
@@ -85,11 +89,11 @@ public class FoodService {
         List<String> foodsList = calorieService.detectFoodItems(url);
 
         List<Map<String, Object>> foods =
-                nutritionService.buildNutritionFromReference(foodsList);
+                nutritionService.buildNutritionFromReference(foodsList, quantity);
 
 
         nutritionService.addNutritionDetails(foods, savedFood);
-        log.info("Food saved successfully for user {}: Food ID {}", userMail, savedFood.getUuid());
+        log.info("Food saved successfully for user {}: Food ID {} with quantity: {}g", userMail, savedFood.getUuid(), quantity);
 
         return savedFood;
     }
@@ -175,6 +179,12 @@ public class FoodService {
                 f.setCarbs(p.getCarbs());
                 f.setFiber(p.getFiber());
                 return f;
+            }).sorted((f1, f2) -> {
+                // Sort by date descending (most recent first)
+                if (f1.getDate() == null && f2.getDate() == null) return 0;
+                if (f1.getDate() == null) return 1;
+                if (f2.getDate() == null) return -1;
+                return f2.getDate().compareTo(f1.getDate());
             }).toList();
 //            log.info(foods.toString());
 //            log.info("Food With Nutrition : {}", foodWithNutritionsList);
@@ -516,6 +526,13 @@ public class FoodService {
                     f.setDate(p.getDate());
                     f.setMealType(p.getMealType());
                     return f;
+                })
+                .sorted((f1, f2) -> {
+                    // Sort by date descending (most recent first)
+                    if (f1.getDate() == null && f2.getDate() == null) return 0;
+                    if (f1.getDate() == null) return 1;
+                    if (f2.getDate() == null) return -1;
+                    return f2.getDate().compareTo(f1.getDate());
                 })
                 .toList();
     }
