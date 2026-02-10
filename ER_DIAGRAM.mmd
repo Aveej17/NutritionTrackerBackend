@@ -1,0 +1,77 @@
+%% Mermaid ER diagram for CalorieTracker Backend
+erDiagram
+    USERS {
+        BIGINT user_id PK
+        VARCHAR name
+        VARCHAR email
+        VARCHAR password
+        BOOLEAN is_prime_user
+    }
+
+    FOODS {
+        UUID uuid PK
+        VARCHAR name
+        BIGINT user_id FK
+        VARCHAR meal_type
+        VARCHAR image_url
+        TEXT notes
+        TIMESTAMP date
+    }
+
+    NUTRITIONS {
+        BIGINT id PK
+        UUID food_uuid FK
+        VARCHAR name
+        BIGINT protein
+        BIGINT fat
+        BIGINT calories
+        BIGINT carbs
+        BIGINT fiber
+        DOUBLE quantity
+    }
+
+    NUTRITION_REFERENCE {
+        BIGINT id PK
+        VARCHAR food_name
+        DOUBLE calories_per_100g
+        DOUBLE protein_per_100g
+        DOUBLE carbs_per_100g
+        DOUBLE fat_per_100g
+        DOUBLE fiber_per_100g
+    }
+
+    PAYMENTS {
+        BIGINT id PK
+        BIGINT amount
+        VARCHAR currency
+        VARCHAR orderId
+        VARCHAR paymentStatus
+        BIGINT user_id FK
+        VARCHAR paymentId
+        TIMESTAMP createdAt
+        TIMESTAMP completedAt
+    }
+
+    USER_GOALS {
+        BIGINT id PK
+        BIGINT user_id FK
+        INT calories
+        INT protein
+        INT carbs
+        INT fat
+    }
+
+    LOGIN_STREAKS {
+        BIGINT id PK
+        BIGINT user_id FK
+        INT current_streak
+        INT longest_streak
+        DATE last_login_date
+    }
+
+    USERS ||--o{ FOODS : "owns"
+    FOODS ||--o{ NUTRITIONS : "has"
+    USERS ||--|| USER_GOALS : "has"
+    USERS ||--o{ PAYMENTS : "makes"
+    USERS ||--|| LOGIN_STREAKS : "has"
+    %% nutrition_reference is standalone
